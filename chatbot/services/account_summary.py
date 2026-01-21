@@ -5,7 +5,7 @@ from models import Accounts, Transactions
 
 def get_account_summary_service(db: Session, params: dict):
     account_id=params.get("account_id")
-    user_id=params.get("user")
+    user_id=params.get("user_id")
     account = (
         db.query(Accounts)
         .filter(Accounts.id == account_id, Accounts.user_id == user_id)

@@ -6,7 +6,7 @@ from chatbot.state_manager import GraphState
 
 def balance_node(state: GraphState) -> GraphState:
     db = state["db"]
-    user = state["user"]
+    user = state["user_id"]
     account_id = state["params"].get("account_id")
 
     balance = get_balance_service(db, user, account_id) #type: ignore
