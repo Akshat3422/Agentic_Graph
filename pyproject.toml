@@ -1,0 +1,28 @@
+[project]
+name = "habilelabs"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "argon2-cffi>=25.1.0",
+    "fastapi[all]>=0.128.0",
+    "ipykernel>=7.1.0",
+    "jose>=1.0.0",
+    "langchain>=1.2.3",
+    "langchain-community>=0.4.1",
+    "langchain-google-genai>=4.1.3",
+    "langchain-groq>=1.1.1",
+    "langchain-tavily>=0.2.16",
+    "langgraph>=1.0.5",
+    "logging>=0.4.9.6",
+    "passlib>=1.7.4",
+    "psycopg2>=2.9.11",
+    "psycopg2-binary>=2.9.11",
+    "python-dotenv>=1.2.1",
+    "python-jose>=3.5.0",
+    "sqlalchemy>=2.0.45",
+    "sqlalchemy-utils>=0.42.1",
+    "uvicorn>=0.40.0",
+    "werkzeug>=3.1.5",
+]

@@ -1,0 +1,17 @@
+2026-01-19 11:00:44,235 | WARNING | routes.auth_routes | auth_routes.py:29 | Invalid login attempt - user not found: Akshat3422
+2026-01-19 11:02:09,388 | WARNING | routes.auth_routes | auth_routes.py:29 | Invalid login attempt - user not found: Akshat123456
+2026-01-19 11:02:29,685 | WARNING | routes.auth_routes | auth_routes.py:29 | Invalid login attempt - user not found: Akshat123456
+2026-01-19 11:02:53,716 | INFO | routes.user | user.py:46 | New user created: Akshat123456, OTP sent to email.
+2026-01-19 11:03:37,178 | INFO | routes.user | user.py:81 | Email verified for user: Akshat123456
+2026-01-19 11:03:42,759 | INFO | routes.auth_routes | auth_routes.py:35 | User logged in: Akshat123456
+2026-01-19 11:03:48,416 | INFO | routes.auth_routes | auth_routes.py:35 | User logged in: Akshat123456
+2026-01-19 11:33:09,074 | ERROR | routes.accounts_routes | accounts_routes.py:178 | Error retrieving account summary id=2: 404: Account not found
+2026-01-19 11:33:22,237 | INFO | routes.accounts_routes | accounts_routes.py:96 | Retrieved 0 accounts for user Akshat123456
+2026-01-19 11:33:49,166 | INFO | routes.accounts_routes | accounts_routes.py:72 | Account created: AKSHAT GUPTA (id=5) for user Akshat123456
+2026-01-19 11:34:02,567 | INFO | routes.accounts_routes | accounts_routes.py:166 | Account summary retrieved: id=5 for user Akshat123456
+2026-01-19 12:17:25,683 | INFO | routes.auth_routes | auth_routes.py:35 | User logged in: Akshat123456
+2026-01-19 13:31:03,691 | INFO | routes.auth_routes | auth_routes.py:35 | User logged in: Akshat123456
+2026-01-19 16:14:35,416 | INFO | routes.auth_routes | auth_routes.py:35 | User logged in: Akshat123456
+2026-01-19 16:14:52,243 | ERROR | routes.user | user.py:87 | Error verifying email: 400: No active OTP
+2026-01-19 17:23:27,067 | INFO | routes.auth_routes | auth_routes.py:35 | User logged in: Akshat123456
+2026-01-19 17:27:07,285 | INFO | routes.auth_routes | auth_routes.py:35 | User logged in: Akshat123456
