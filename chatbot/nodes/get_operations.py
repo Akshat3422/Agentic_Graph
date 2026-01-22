@@ -31,18 +31,20 @@ prompts=ChatPromptTemplate(
 )
 chain=prompts|llm
 
-def get_operations(state:GraphState) : #type: ignore
-    question=str(state['current_sub_query'])
+def get_operations(state: GraphState):
+    question = str(state["current_sub_query"])
+
     if is_future_query(query=question):
         state["operation"] = None
         state["params"] = {}
         return state
-    else:
-        response=chain.invoke({"user_input":question})
-        normal_response=output_format(response=response)
-        if  normal_response['operation'] not in OPERATION_HANDLER_MAP:
-            raise ValueError(f"Unsupported operation: {normal_response['operation'] }")
 
-        state['operation']=normal_response['operation'] #type:ignore
-        state['params']=normal_response['params']
-        return state
+    response = chain.invoke({"user_input": question})
+    normal_response = output_format(response=response)
+
+    # ✅ Do NOT validate against handler maps
+    state["operation"] = normal_response["operation"] #type: ignore
+    state["params"] = normal_response["params"]
+
+    return state
+

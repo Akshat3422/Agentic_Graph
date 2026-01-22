@@ -10,15 +10,18 @@ def numeric_pipeline(state: GraphState):
     params = state.get("params") or {}
     db = state["db"]
 
-    # 🔑 Inject authenticated user_id
-    user_id = state["user_id"]
-    params["user_id"] = user_id
+    params["user_id"] = state["user_id"]
 
-    if operation not in OPERATION_HANDLER_MAP:
-        raise ValueError(f"Unsupported operation: {operation}")
+    handler = OPERATION_HANDLER_MAP.get(operation) #type: ignore
+    if not handler:
+        state["final_answer"] = f"Unsupported numeric operation: {operation}"
+        return state
 
-    handler = OPERATION_HANDLER_MAP[operation] #type:ignore
+    result = handler(db, params)
 
-    state["numeric_result"] = handler(db, params)
+    state["numeric_result"] = result
+    state["final_answer"] = f"Result: {result}"
+
     return state
+
 

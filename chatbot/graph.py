@@ -7,6 +7,7 @@ from .nodes.balance_node import balance_node
 from .nodes.final_result import final_result
 from .nodes.get_operations import get_operations
 from .nodes.numeric_pipeline import numeric_pipeline
+from .nodes.visualize import visualize_pipeline
 from .nodes.pick_subquery_node import pick_sub_query,increment_index
 from .nodes.should_continue import should_continue
 from .nodes.summary_results import summary_pipeline
@@ -35,6 +36,7 @@ graph.add_node("decompose_query", subquery_generate)
 graph.add_node("pick_sub_query", pick_sub_query)
 graph.add_node("intent_classifier", intent_classifier)
 graph.add_node("get_operations", get_operations)
+graph.add_node("visualize_pipeline",visualize_pipeline)
 graph.add_node("numeric_pipeline", numeric_pipeline)
 graph.add_node("summary_pipeline", summary_pipeline)
 graph.add_node("final_result", final_result)
@@ -50,12 +52,14 @@ graph.add_edge("intent_classifier", "get_operations")
 
 graph.add_conditional_edges(
     "get_operations",
-    lambda state: "numeric" if state["intent"] == 1 else "summary",
+    lambda state: state["intent"],
     {
         "numeric": "numeric_pipeline",
-        "summary": "summary_pipeline",
+        "visualize": "visualize_pipeline",
+        "summary": "summary_pipeline"
     }
 )
+
 
 
 # Numeric path
@@ -63,6 +67,8 @@ graph.add_edge("numeric_pipeline", "final_result")
 
 # Summary path
 graph.add_edge("summary_pipeline", "final_result")
+graph.add_edge("visualize_pipeline", "final_result")
+
 graph.add_edge("final_result","increment_index")
 
 # Loop control (NO should_continue node)

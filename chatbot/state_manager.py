@@ -1,4 +1,4 @@
-from typing import TypedDict, Optional, Dict, Any, List
+from typing import TypedDict, Optional, Dict, Any, List,Literal
 from sqlalchemy.orm import Session
 
 
@@ -19,7 +19,7 @@ class GraphState(TypedDict):
     results: Optional[List[Dict[str, Any]]]
 
     # Intent
-    intent: Optional[int]  # 1 = numeric, 0 = summary
+    intent: Optional[Literal["numeric","summary","visualize"]]  # 1 = numeric, 0 = summary
 
     # Numeric pipeline
     operation: Optional[str]
@@ -30,6 +30,7 @@ class GraphState(TypedDict):
     documents: Optional[List[str]]
     summary_result: Optional[str]
     should_continue:Optional[str]
+    visualize_result:Optional[List[Any]]
 
     # DB context
     db: Session

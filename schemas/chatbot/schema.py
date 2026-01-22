@@ -11,7 +11,6 @@ class OperationType(str, Enum):
     # --------------------
     Total_Spend = "Total_Spend"
     Total_Spend_Category = "Total_Spend_Category"
-    Category_Break = "Category_Break"
     Top_Category = "Top_Category"
     Avg_Daily_Spend = "Avg_Daily_Spend"
 
@@ -45,6 +44,8 @@ class OperationType(str, Enum):
     # --------------------
     Account_Summary = "Account_Summary"
     User_Accounts = "User_Accounts"
+    VISUALIZE_EXPENSE_AND_INCOME="VISUALIZE_EXPENSE_AND_INCOME"
+    CATEGORY_WISE_VISUALIZE="CATEGORY_WISE_VISUALIZE"
     Unsupported = "UNSUPPORTED"
 
 

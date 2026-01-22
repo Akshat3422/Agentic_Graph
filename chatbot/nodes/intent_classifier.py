@@ -27,9 +27,11 @@ def intent_classifier(state: GraphState):
     raw = response.content.strip()  #type:ignore
 # ✅ strict normalization
     if raw == "1":
-        state["intent"] = 1
+        state["intent"] = "numeric"
+    elif raw == "3":
+        state['intent']="summary"
     else:
-        state["intent"] = 0
+        state["intent"] = "visualize"
     return state
 
 

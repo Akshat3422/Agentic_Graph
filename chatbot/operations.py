@@ -26,6 +26,7 @@ from chatbot.services.trend import (
     monthly_summary,
     compare_periods,
 )
+from chatbot.services.spending_visualization import get_transaction_type_summary,category_pie
 
 from chatbot.services.account import account_summary_handler,get_user_accounts_service
 from schemas.chatbot.schema import OperationType
@@ -36,7 +37,6 @@ OPERATION_HANDLER_MAP = {
     # --------------------
     OperationType.Total_Spend: total_spend,
     OperationType.Total_Spend_Category: total_spend_by_category,
-    OperationType.Category_Break: category_break,
     OperationType.Top_Category: top_category,
     OperationType.Avg_Daily_Spend: average_daily_spend,
 
@@ -69,5 +69,6 @@ OPERATION_HANDLER_MAP = {
     # Summary
     # --------------------
     OperationType.Account_Summary: account_summary_handler,
-    OperationType.User_Accounts:get_user_accounts_service
+    OperationType.User_Accounts:get_user_accounts_service,
+
 }

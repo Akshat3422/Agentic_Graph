@@ -13,7 +13,8 @@ prompt = ChatPromptTemplate.from_messages([
     ("human", 
      "User Query: {query}\n"
      "Numeric Result: {numeric_result}\n"
-     "Summary Result: {summary_result}")
+     "Summary Result: {summary_result}\n"
+     "Visualize Result: {visualize_result}")
 ])
 
 chain = prompt | model
@@ -25,6 +26,7 @@ def final_result(state: GraphState) -> GraphState:
         "query": state.get("current_sub_query"),
         "numeric_result": state.get("numeric_result"),
         "summary_result": state.get("summary_result"),
+        "visualize_result":state.get("visualize_result")
     })
 
     # Extract content safely
@@ -47,6 +49,7 @@ def final_result(state: GraphState) -> GraphState:
     # (Optional) reset per-subquery fields to avoid bleed into next loop
     state["numeric_result"] = None
     state["summary_result"] = None
+    state["visualize_result"]=None
     return state
 
 

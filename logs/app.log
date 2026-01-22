@@ -21,3 +21,10 @@
 2026-01-22 11:24:33,963 | INFO | routes.auth_routes | auth_routes.py:35 | User logged in: Akshat123456
 2026-01-22 11:24:38,607 | INFO | routes.user | user.py:99 | User data retrieved for: Akshat123456
 2026-01-22 11:24:50,154 | INFO | routes.accounts_routes | accounts_routes.py:72 | Account created: AKSHAT GUPTA (id=6) for user Akshat123456
+2026-01-22 14:27:00,323 | INFO | routes.auth_routes | auth_routes.py:35 | User logged in: Akshat123456
+2026-01-22 14:27:06,350 | INFO | routes.accounts_routes | accounts_routes.py:72 | Account created: AKSHAT GUPTA (id=7) for user Akshat123456
+2026-01-22 14:27:21,914 | INFO | routes.transactions_routes | transactions_routes.py:56 | Transaction created: id=11 account_id=7 user=Akshat123456 type=TransactionType.EXPENSE amount=2000.00
+2026-01-22 14:27:52,386 | INFO | routes.transactions_routes | transactions_routes.py:56 | Transaction created: id=12 account_id=7 user=Akshat123456 type=TransactionType.EXPENSE amount=5000.00
+2026-01-22 14:28:04,666 | INFO | routes.transactions_routes | transactions_routes.py:56 | Transaction created: id=13 account_id=7 user=Akshat123456 type=TransactionType.EXPENSE amount=11000.00
+2026-01-22 15:37:12,952 | INFO | routes.auth_routes | auth_routes.py:35 | User logged in: Akshat123456
+2026-01-22 16:56:13,888 | INFO | routes.auth_routes | auth_routes.py:35 | User logged in: Akshat123456

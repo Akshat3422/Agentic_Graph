@@ -50,7 +50,7 @@ def output_format(response) -> Dict[str, Dict[str, Any]]:
     params: OperationParams = response.params
     operation: OperationType = response.operation
 
-    clean_params = params.model_dump(exclude_none=True)
+    clean_params = params.model_dump()
 
     # Normalize enums inside params
     for k, v in clean_params.items():

@@ -4,6 +4,8 @@ from models import Accounts, Transactions
 
 
 def get_account_summary_service(db: Session, params: dict):
+    
+    print("DEBUG params:", params)  
     account_id=params.get("account_id")
     user_id=params.get("user_id")
     account = (
