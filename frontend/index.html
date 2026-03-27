@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Finance Manager</title>
+  <style>
+    body { font-family: Arial; background:#f1f5f9; padding:20px }
+    .card { background:#fff; padding:15px; margin-bottom:20px; border-radius:6px }
+    input, button { width:100%; padding:8px; margin-top:6px }
+    button { background:#2563eb; color:white; border:none }
+    pre { background:black; color:#00ff00; padding:10px }
+  </style>
+</head>
+<body>
+
+<h1>💰 Finance Manager – FULL FLOW</h1>
+
+<div class="card">
+  <h3>1️⃣ Create User</h3>
+  <input id="email" placeholder="Email">
+  <input id="username" placeholder="Username">
+  <input id="newPassword" placeholder="Password">
+  <button onclick="createUser()">Create User</button>
+</div>
+
+<div class="card">
+  <h3>2️⃣ Verify Email (OTP)</h3>
+  <input id="otp" placeholder="OTP">
+  <button onclick="verifyEmail()">Verify Email</button>
+</div>
+
+<div class="card">
+  <h3>3️⃣ Login</h3>
+  <button onclick="login()">Login</button>
+</div>
+
+<div class="card">
+  <h3>4️⃣ Create Account</h3>
+  <button onclick="createAccount()">Create Account</button>
+</div>
+
+<div class="card">
+  <h3>5️⃣ Create Transaction</h3>
+  <input id="accountId" placeholder="Account ID">
+  <button onclick="createTransaction()">Create Transaction</button>
+</div>
+
+<h3>📦 API Response</h3>
+<pre id="output"></pre>
+
+<script src="app.js"></script>
+</body>
+</html>
