@@ -13,7 +13,7 @@ from chatbot.services.balance import (
 
 from chatbot.services.income import (
     total_income_spend,
-    total_expense,
+    total_expense
 )
 
 from chatbot.services.transactions import (
@@ -39,7 +39,6 @@ OPERATION_HANDLER_MAP = {
     OperationType.Total_Spend_Category: total_spend_by_category,
     OperationType.Top_Category: top_category,
     OperationType.Avg_Daily_Spend: average_daily_spend,
-
     # --------------------
     # Income / Expense
     # --------------------
