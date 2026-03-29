@@ -109,15 +109,32 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-4. Configure PostgreSQL connection (currently set in `database.py`).
+4. Create a `.env` file in the project root and add your configuration:
 
-5. Run API server:
+```env
+GMAIL_ID=your_email@gmail.com
+PASSWORD=your_app_password
+
+SECRET_KEY=your_secret_key
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=60
+
+GROQ_API_KEY=your_groq_api_key
+
+POSTGRES_DB_NAME=your_database_name
+POSTGRES_USER=your_postgres_user
+POSTGRES_PASSWORD=your_postgres_password
+```
+
+5. Make sure PostgreSQL is running locally on port `5432`.
+
+6. Run API server:
 
 ```bash
 uvicorn main:app --reload
 ```
 
-6. Run Streamlit frontend:
+7. Run Streamlit frontend:
 
 ```bash
 streamlit run streamlit_app.py
@@ -131,3 +148,4 @@ streamlit run streamlit_app.py
 ## Notes
 
 - CORS is enabled for all origins in current setup.
+- Database credentials are no longer hardcoded; they are loaded from environment variables.
