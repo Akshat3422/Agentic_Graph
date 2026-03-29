@@ -56,11 +56,11 @@ class TimeRange(str, Enum):
     TODAY = "today"
     YESTERDAY = "yesterday"
     LAST_WEEK = "last_week"
+    LAST_7_DAYS = "last_7_days"   
     THIS_MONTH = "this_month"
     LAST_MONTH = "last_month"
     LAST_30_DAYS = "last_30_days"
     CUSTOM = "custom"
-
 
 class OperationParams(BaseModel):
     category: Optional[str] = Field(
