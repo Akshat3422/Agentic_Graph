@@ -91,7 +91,8 @@ from enum import Enum
 class TimeRange(str, Enum):
     TODAY = "today"
     YESTERDAY = "yesterday"
-    LAST_WEEK = "last_week"          # kept as calendar-week; rolling 7-days is LAST_30_DAYS-style
+    LAST_WEEK = "last_week"   
+    LAST_7_DAYS="last_7_days"       # kept as calendar-week; rolling 7-days is LAST_30_DAYS-style
     THIS_MONTH = "this_month"
     LAST_MONTH = "last_month"
     LAST_30_DAYS = "last_30_days"
@@ -210,39 +211,39 @@ def get_utc_time_range_bounds(
     if not range_key:
         return None
     range_key = range_key.lower()
- 
+
     now = datetime.now(timezone.utc)
     today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
- 
+
     # ── TODAY ────────────────────────────────────────────────────────────────
     if range_key == TimeRange.TODAY.value:
         return (today_start, now)
- 
+
     # ── YESTERDAY ────────────────────────────────────────────────────────────
     if range_key == TimeRange.YESTERDAY.value:
         start = today_start - timedelta(days=1)
         end = today_start
         return (start, end)
- 
+
     # ── LAST_WEEK ────────────────────────────────────────────────────────────
-    # FIX 2 – proper ISO calendar week (Monday 00:00 → Sunday 23:59:59.999…)
-    # instead of a rolling 7-day window.
-    # If you want rolling-7-days, use LAST_30_DAYS-style: (now - timedelta(days=7), now).
     if range_key == TimeRange.LAST_WEEK.value:
-        # weekday() returns 0 = Monday … 6 = Sunday
         days_since_monday = today_start.weekday()
         this_monday = today_start - timedelta(days=days_since_monday)
         last_monday = this_monday - timedelta(weeks=1)
-        last_sunday_end = this_monday  # half-open: up to (but not including) this Monday
+        last_sunday_end = this_monday
         return (last_monday, last_sunday_end)
- 
+
+    # ── LAST_7_DAYS ──────────────────────────────────────────────────────────
+    if range_key == TimeRange.LAST_7_DAYS.value:
+        start = today_start - timedelta(days=6)   # 6 days ago midnight
+        end = today_start + timedelta(days=2)      # tomorrow midnight
+        return (start, end)
+
     # ── THIS_MONTH ───────────────────────────────────────────────────────────
-    # FIX 1 – delegate to the fixed helper; was previously inlined with bugs.
     if range_key == TimeRange.THIS_MONTH.value:
         start, _end = get_this_month_range()
-        # Convention: end of "this month" is *now*, not start of next month.
-        return (start, now)
- 
+        return (start, _end)
+
     # ── LAST_MONTH ───────────────────────────────────────────────────────────
     if range_key == TimeRange.LAST_MONTH.value:
         first_this_month = now.replace(
@@ -253,39 +254,37 @@ def get_utc_time_range_bounds(
             day=1, hour=0, minute=0, second=0, microsecond=0
         )
         return (last_month_start, last_month_end)
- 
+
     # ── LAST_30_DAYS ─────────────────────────────────────────────────────────
     if range_key == TimeRange.LAST_30_DAYS.value:
-        return (now - timedelta(days=30), now)
- 
+        return (now - timedelta(days=30), now+timedelta(days=1))
+
     # ── CUSTOM ───────────────────────────────────────────────────────────────
     if range_key == TimeRange.CUSTOM.value:
         start_date = parse_utc_datetime(params.get("start_date"))
         end_date = parse_utc_datetime(params.get("end_date"))
- 
+
         if not start_date and not end_date:
             logger.warning(
                 "get_utc_time_range_bounds: CUSTOM range requested but neither "
                 "start_date nor end_date was provided."
             )
             return None
- 
-        # FIX 3 – warn when a bound is missing so callers know a default was used.
+
         if not start_date:
             logger.warning(
                 "get_utc_time_range_bounds: CUSTOM range missing start_date; "
                 "defaulting to now - 30 days."
             )
             start_date = now - timedelta(days=30)
- 
+
         if not end_date:
             logger.warning(
                 "get_utc_time_range_bounds: CUSTOM range missing end_date; "
                 "defaulting to now."
             )
             end_date = now
- 
-        # FIX 4 – warn when bounds are inverted before silently swapping.
+
         if start_date > end_date:
             logger.warning(
                 "get_utc_time_range_bounds: CUSTOM start_date (%s) is after "
@@ -294,12 +293,25 @@ def get_utc_time_range_bounds(
                 end_date.isoformat(),
             )
             start_date, end_date = end_date, start_date
- 
+
         return (start_date, end_date)
- 
+
     # ── UNRECOGNISED ─────────────────────────────────────────────────────────
     logger.warning(
         "get_utc_time_range_bounds: unrecognised range key %r; returning None.",
         range_key,
     )
     return None
+
+def get_naive_time_range_bounds(
+    params: dict,
+) -> Optional[tuple[datetime, datetime]]:
+    """
+    Same as get_utc_time_range_bounds but strips tzinfo so it works
+    with naive timestamps stored in the DB.
+    """
+    bounds = get_utc_time_range_bounds(params)
+    if not bounds:
+        return None
+    start, end = bounds
+    return (start.replace(tzinfo=None), end.replace(tzinfo=None))
