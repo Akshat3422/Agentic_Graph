@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, timezone
 import smtplib
 import os
 from typing import Dict,Any,cast,List
-from schemas.chatbot.schema import *
+from schemas.chatbot.schema import OperationParams,OperationType
 from email.message import EmailMessage
 import json
 
