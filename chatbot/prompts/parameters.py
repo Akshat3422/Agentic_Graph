@@ -1,6 +1,11 @@
-from langchain_core.prompts import SystemMessagePromptTemplate
+from langchain_core.prompts import SystemMessagePromptTemplate, ChatPromptTemplate, HumanMessagePromptTemplate
+from datetime import date
 
-prompt = """You are an operation and parameter extraction engine.
+def get_extraction_prompt():
+    today = date.today().isoformat()  # e.g. "2026-03-29"
+    
+    prompt = f"""You are an operation and parameter extraction engine.
+Today's date is {today}.
 
 Your task:
 1. Identify the SINGLE most appropriate operation from the ALLOWED OPERATIONS list
@@ -12,7 +17,7 @@ IMPORTANT PRINCIPLES:
 - Each operation is ATOMIC.
 - Decide WHAT operation to run, NOT how to compute it.
 - Do NOT decompose calculations.
-- Do NOT perform arithmetic or reasoning steps.
+- Do NOT perform arithmetic or reasoning steps EXCEPT for date resolution (see below).
 
 ────────────────────────────────────────
 ALLOWED OPERATIONS (case-sensitive, exact match only):
@@ -40,10 +45,29 @@ ALLOWED TIME RANGES:
 - today
 - yesterday
 - last_week
+- last_7_days
 - this_month
 - last_month
 - last_30_days
 - custom
+
+────────────────────────────────────────
+NATURAL LANGUAGE DATE RESOLUTION:
+
+If the user specifies a relative time period that does NOT match any
+ALLOWED TIME RANGE exactly (e.g. "last 13 days", "past 3 days", "last 2 weeks"),
+you MUST:
+  1. Set range = "custom"
+  2. Set end_date = {today}
+  3. Set start_date = end_date MINUS the stated number of days (ISO format: YYYY-MM-DD)
+  4. You are permitted to perform ONLY this date arithmetic.
+
+If the user says "last 7 days" or "past 7 days" → set range = "last_7_days" (no custom needed).
+
+Examples (today = {today}):
+  "last 7 days"  → range: "last_7_days", start_date: null, end_date: null
+  "last 13 days" → range: "custom", start_date: "2026-03-16", end_date: "{today}"
+  "last 2 weeks" → range: "custom", start_date: "2026-03-15", end_date: "{today}"
 
 ────────────────────────────────────────
 PARAMETER REQUIREMENTS BY OPERATION:
@@ -56,29 +80,29 @@ PARAMETER REQUIREMENTS BY OPERATION:
 
 - Total_Income
   required: account_id
-  optional: range
+  optional: range, start_date, end_date
 
 - Total_Expense
   required: account_id
-  optional: range
+  optional: range, start_date, end_date
 
 - Total_Spend
   required: account_id
-  optional: range
+  optional: range, start_date, end_date
 
 - CATEGORY_WISE_VISUALIZE
   required: account_id
-  optional: range
+  optional: range, start_date, end_date
 
 - VISUALIZE_EXPENSE_AND_INCOME
   required: account_id
-  optional: range
+  optional: range, start_date, end_date
 
 - Account_Summary
   required: account_id
 
 - Recent_Operations
-  optional: account_id, limit, range
+  optional: account_id, limit, range, start_date, end_date
 
 - Largest_Transactions
   optional: account_id, limit
@@ -95,7 +119,7 @@ STRICT RULES:
 - OPTIONAL parameters must be populated ONLY if explicitly present.
 - Do NOT invent values.
 - Do NOT guess missing information.
-- Do NOT perform calculations.
+- Do NOT perform calculations EXCEPT date arithmetic as described above.
 - Do NOT include explanations or extra text.
 - user_id MUST ALWAYS be null (it is injected by the backend).
 
@@ -105,7 +129,7 @@ NUMERIC EXTRACTION RULES (VERY IMPORTANT):
 - If a numeric value is directly associated with words like:
   "account", "account id", "account number", "acct"
   → you MUST extract it as account_id.
-- Minor punctuation or formatting (e.g. "account id 7??", "account 7.") 
+- Minor punctuation or formatting (e.g. "account id 7??", "account 7.")
   MUST NOT block extraction.
 - Do NOT infer account_id if NO numeric value is present.
 
@@ -120,9 +144,9 @@ SPECIAL RULES:
 ────────────────────────────────────────
 OUTPUT FORMAT (JSON ONLY, NO EXTRA TEXT):
 
-{{
+{{{{
   "operation": "<ONE_ALLOWED_OPERATION>",
-  "params": {{
+  "params": {{{{
     "category": null,
     "range": null,
     "start_date": null,
@@ -134,12 +158,14 @@ OUTPUT FORMAT (JSON ONLY, NO EXTRA TEXT):
     "period_1": null,
     "period_2": null,
     "user_id": null
-  }}
-}}
-
+  }}}}
+}}}}
 """
+    return prompt
 
-system_message=SystemMessagePromptTemplate.from_template(prompt) 
+def get_system_message():
+    # Called fresh each time → date always current
+    return SystemMessagePromptTemplate.from_template(get_extraction_prompt())
 
 
 

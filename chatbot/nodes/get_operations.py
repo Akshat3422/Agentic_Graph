@@ -1,6 +1,6 @@
 from utils import is_future_query,output_format
 from schemas.chatbot.schema import OperationType,OperationParams
-from chatbot.prompts.parameters import system_message
+from chatbot.prompts.parameters import get_system_message
 from langchain_core.prompts import ChatPromptTemplate
 import os
 from pydantic import BaseModel
@@ -25,7 +25,7 @@ llm=model.with_structured_output(LLMStructuredOutput)
 
 prompts=ChatPromptTemplate(
     messages=[
-        system_message,
+        get_system_message(),
         ("human", "{user_input}")
     ]
 )

@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import desc
 from datetime import datetime, timezone, timedelta
 
-from utils import get_utc_time_range_bounds
+from utils import get_naive_time_range_bounds
 
 def total_spend_by_category(db: Session, params: dict):
     account_id = params.get("account_id")
@@ -12,7 +12,7 @@ def total_spend_by_category(db: Session, params: dict):
     if not account_id or not user_id:
         return []
 
-    time_bounds = get_utc_time_range_bounds(params)
+    time_bounds = get_naive_time_range_bounds(params)
 
     q = (
         db.query(
@@ -85,7 +85,7 @@ def top_category(db: Session, params: dict):
     if not account_id or not user_id:
         return None
 
-    time_bounds = get_utc_time_range_bounds(params)
+    time_bounds = get_naive_time_range_bounds(params)
 
     q = (
         db.query(
@@ -113,13 +113,51 @@ def top_category(db: Session, params: dict):
     }
 
 
+# def total_spend(db: Session, params: dict):
+#     account_id = params.get("account_id")
+#     user_id = params.get("user_id")
+#     if not account_id or not user_id:
+#         return 0.0
+
+#     time_bounds = get_utc_time_range_bounds(params)
+
+#     q = (
+#         db.query(func.coalesce(func.sum(Transactions.amount), 0))
+#         .join(Accounts, Accounts.id == Transactions.account_id)
+#         .filter(
+#             Transactions.account_id == account_id,
+#             Accounts.user_id == user_id,
+#             Transactions.transaction_type == TransactionType.EXPENSE,
+#         )
+#     )
+
+#     if time_bounds:
+#         start_utc, end_utc = time_bounds
+#         q = q.filter(Transactions.timestamp >= start_utc, Transactions.timestamp <= end_utc)
+
+#     total = q.scalar()
+#     return float(total or 0.0)
 def total_spend(db: Session, params: dict):
     account_id = params.get("account_id")
     user_id = params.get("user_id")
     if not account_id or not user_id:
         return 0.0
 
-    time_bounds = get_utc_time_range_bounds(params)
+    time_bounds = get_naive_time_range_bounds(params)
+    
+    # ── DEBUG ──────────────────────────────────────────────
+    # print(f"account_id: {account_id}, user_id: {user_id}")
+    # print(f"time_bounds: {time_bounds}")
+    
+    # # Check what timestamps actually exist in DB for this account
+    # sample = (
+    #     db.query(Transactions.timestamp, Transactions.amount, Transactions.transaction_type)
+    #     .filter(Transactions.account_id == account_id)
+    #     .limit(5)
+    #     .all()
+    # )
+    # print(f"Sample transactions: {sample}")
+    # ───────────────────────────────────────────────────────
 
     q = (
         db.query(func.coalesce(func.sum(Transactions.amount), 0))
@@ -133,11 +171,10 @@ def total_spend(db: Session, params: dict):
 
     if time_bounds:
         start_utc, end_utc = time_bounds
-        q = q.filter(Transactions.timestamp >= start_utc, Transactions.timestamp <= end_utc)
+        q = q.filter(Transactions.timestamp >= start_utc, Transactions.timestamp <end_utc)
 
     total = q.scalar()
     return float(total or 0.0)
-
 
 def average_daily_spend(db: Session, params: dict):
     account_id = params.get("account_id")
@@ -145,7 +182,7 @@ def average_daily_spend(db: Session, params: dict):
     if not account_id or not user_id:
         return 0.0
 
-    time_bounds = get_utc_time_range_bounds(params)
+    time_bounds = get_naive_time_range_bounds(params)
     now = datetime.now(timezone.utc)
 
     # Default to a reasonable window if the model didn't provide one.

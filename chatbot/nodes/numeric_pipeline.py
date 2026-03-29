@@ -13,12 +13,14 @@ def numeric_pipeline(state: GraphState):
     params["user_id"] = state["user_id"]
 
     handler = OPERATION_HANDLER_MAP.get(operation) #type: ignore
+    print(f"Params:{params}")
+    # print(f"handler:{handler}")
     if not handler:
         state["final_answer"] = f"Unsupported numeric operation: {operation}"
         return state
 
     result = handler(db, params)
-
+    print(f"Result:{result}")
     state["numeric_result"] = result
     state["final_answer"] = f"Result: {result}"
 

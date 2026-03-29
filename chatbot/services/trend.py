@@ -5,7 +5,7 @@ from sqlalchemy.sql import func
 from sqlalchemy.orm import Session
 
 from models import Accounts, TransactionType, Transactions
-from utils import get_utc_time_range_bounds
+from utils import get_naive_time_range_bounds
 
 
 def _normalize_period(value: str) -> str:
@@ -31,7 +31,7 @@ def spending_trends(db: Session, params: dict):
         return []
 
     period = _normalize_period(params.get("period") or "daily")
-    time_bounds = get_utc_time_range_bounds(params)
+    time_bounds = get_naive_time_range_bounds(params)
     now = datetime.now(timezone.utc)
 
     if time_bounds:
@@ -76,7 +76,7 @@ def monthly_summary(db: Session, params: dict):
     if not account_id or not user_id:
         return []
 
-    time_bounds = get_utc_time_range_bounds(params)
+    time_bounds = get_naive_time_range_bounds(params)
     now = datetime.now(timezone.utc)
 
     if time_bounds:
@@ -155,8 +155,8 @@ def compare_periods(db: Session, params: dict):
     if str(period_1).lower() == "custom" or str(period_2).lower() == "custom":
         return None
 
-    b1 = get_utc_time_range_bounds({"range": period_1})
-    b2 = get_utc_time_range_bounds({"range": period_2})
+    b1 = get_naive_time_range_bounds({"range": period_1})
+    b2 = get_naive_time_range_bounds({"range": period_2})
     if not b1 or not b2:
         return None
 

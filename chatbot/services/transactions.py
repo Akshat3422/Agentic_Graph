@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from models import Transactions, Accounts
 
-from utils import get_utc_time_range_bounds
+from utils import get_naive_time_range_bounds
 
 
 
@@ -13,7 +13,7 @@ def recent_operations(db: Session, params: dict):
         return []
 
     limit = params.get("limit") or 10
-    time_bounds = get_utc_time_range_bounds(params)
+    time_bounds = get_naive_time_range_bounds(params)
 
     q = (
         db.query(Transactions)
@@ -51,7 +51,7 @@ def largest_transaction(db: Session, params: dict):
         return []
 
     limit = params.get("limit") or 5
-    time_bounds = get_utc_time_range_bounds(params)
+    time_bounds = get_naive_time_range_bounds(params)
 
     q = (
         db.query(Transactions)
