@@ -131,4 +131,3 @@ streamlit run streamlit_app.py
 ## Notes
 
 - CORS is enabled for all origins in current setup.
-- `database.py` currently uses a hardcoded PostgreSQL URL; moving it to environment variables is recommended for production.
