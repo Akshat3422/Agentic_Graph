@@ -1,52 +1,680 @@
+
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Finance Manager</title>
-  <style>
-    body { font-family: Arial; background:#f1f5f9; padding:20px }
-    .card { background:#fff; padding:15px; margin-bottom:20px; border-radius:6px }
-    input, button { width:100%; padding:8px; margin-top:6px }
-    button { background:#2563eb; color:white; border:none }
-    pre { background:black; color:#00ff00; padding:10px }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Assistant API Lab</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <div class="ambient ambient-one"></div>
+    <div class="ambient ambient-two"></div>
 
-<h1>💰 Finance Manager – FULL FLOW</h1>
+    <div id="authShell" class="auth-shell">
+        <section class="auth-stage">
+            <div class="auth-copy card-glass">
+                <p class="eyebrow">Standalone Frontend</p>
+                <h1>Test every finance API in a dashboard that feels alive.</h1>
+                <p class="lede">
+                    Register, verify OTP, log in, fetch your account context automatically, and run account-aware
+                    transaction and chatbot flows without touching Postman.
+                </p>
+                <div class="feature-list">
+                    <article>
+                        <span>01</span>
+                        <div>
+                            <h2>Auth That Carries Context</h2>
+                            <p><code>user_id</code> is fetched right after login from <code>/users/me</code> and shown throughout the app.</p>
+                        </div>
+                    </article>
+                    <article>
+                        <span>02</span>
+                        <div>
+                            <h2>Account-Driven Flows</h2>
+                            <p>Select an account once in the Accounts section and reuse that <code>account_id</code> everywhere.</p>
+                        </div>
+                    </article>
+                    <article>
+                        <span>03</span>
+                        <div>
+                            <h2>Chat + API Lab Together</h2>
+                            <p>Use chatbot panels in Accounts and Transactions, plus a raw API console for edge cases.</p>
+                        </div>
+                    </article>
+                </div>
+            </div>
 
-<div class="card">
-  <h3>1️⃣ Create User</h3>
-  <input id="email" placeholder="Email">
-  <input id="username" placeholder="Username">
-  <input id="newPassword" placeholder="Password">
-  <button onclick="createUser()">Create User</button>
-</div>
+            <div class="auth-panel card-solid">
+                <div class="auth-tabs">
+                    <button class="auth-tab active" data-auth-view="login">Login</button>
+                    <button class="auth-tab" data-auth-view="register">Register</button>
+                    <button class="auth-tab" data-auth-view="verify">Verify OTP</button>
+                </div>
 
-<div class="card">
-  <h3>2️⃣ Verify Email (OTP)</h3>
-  <input id="otp" placeholder="OTP">
-  <button onclick="verifyEmail()">Verify Email</button>
-</div>
+                <div id="authStatus" class="inline-banner info">
+                    Set your backend URL and start with register or login.
+                </div>
 
-<div class="card">
-  <h3>3️⃣ Login</h3>
-  <button onclick="login()">Login</button>
-</div>
+                <div class="field-stack compact">
+                    <label for="backendUrlInput">Backend URL</label>
+                    <div class="inline-input">
+                        <input id="backendUrlInput" type="text" placeholder="http://localhost:8000">
+                        <button id="saveBackendUrlBtn" class="btn btn-secondary" type="button">Save</button>
+                    </div>
+                </div>
 
-<div class="card">
-  <h3>4️⃣ Create Account</h3>
-  <button onclick="createAccount()">Create Account</button>
-</div>
+                <section id="loginView" class="auth-view active">
+                    <form id="loginForm" class="field-stack">
+                        <label for="loginUsername">Username</label>
+                        <input id="loginUsername" name="username" type="text" placeholder="jane_doe" required>
+                        <label for="loginPassword">Password</label>
+                        <input id="loginPassword" name="password" type="password" placeholder="Enter password" required>
+                        <div class="button-row">
+                            <button class="btn btn-primary" type="submit">Login</button>
+                            <button id="resendOtpBtn" class="btn btn-secondary" type="button">Resend OTP</button>
+                        </div>
+                    </form>
+                </section>
 
-<div class="card">
-  <h3>5️⃣ Create Transaction</h3>
-  <input id="accountId" placeholder="Account ID">
-  <button onclick="createTransaction()">Create Transaction</button>
-</div>
+                <section id="registerView" class="auth-view">
+                    <form id="registerForm" class="field-stack">
+                        <label for="registerUsername">Username</label>
+                        <input id="registerUsername" name="username" type="text" placeholder="Choose a username" required>
+                        <label for="registerEmail">Email</label>
+                        <input id="registerEmail" name="email" type="email" placeholder="you@example.com" required>
+                        <label for="registerPassword">Password</label>
+                        <input id="registerPassword" name="password" type="password" placeholder="Create a password" required>
+                        <button class="btn btn-primary" type="submit">Create account</button>
+                    </form>
+                </section>
 
-<h3>📦 API Response</h3>
-<pre id="output"></pre>
+                <section id="verifyView" class="auth-view">
+                    <form id="verifyForm" class="field-stack">
+                        <label for="verifyEmail">Email</label>
+                        <input id="verifyEmail" name="email" type="email" placeholder="you@example.com" required>
+                        <label for="verifyOtp">OTP</label>
+                        <input id="verifyOtp" name="otp" type="text" placeholder="Enter email OTP" required>
+                        <button class="btn btn-primary" type="submit">Verify email</button>
+                    </form>
+                </section>
+            </div>
+        </section>
+    </div>
 
-<script src="app.js"></script>
+    <div id="appShell" class="app-shell hidden">
+        <aside id="sidebar" class="sidebar">
+            <div class="brand-block">
+                <p class="eyebrow">Finance Command Center</p>
+                <h1>Financial Assistant</h1>
+                <p class="sidebar-copy">Interactive frontend for auth, accounts, transactions, chat, and raw endpoint testing.</p>
+            </div>
+
+            <nav class="nav-list">
+                <button class="nav-item active" data-tab="dashboard">
+                    <span class="nav-kicker">01</span>
+                    <span>
+                        <strong>Dashboard</strong>
+                        <small>Session snapshot</small>
+                    </span>
+                </button>
+                <button class="nav-item" data-tab="accounts">
+                    <span class="nav-kicker">02</span>
+                    <span>
+                        <strong>Accounts</strong>
+                        <small>Select active account</small>
+                    </span>
+                </button>
+                <button class="nav-item" data-tab="transactions">
+                    <span class="nav-kicker">03</span>
+                    <span>
+                        <strong>Transactions</strong>
+                        <small>Create, filter, update</small>
+                    </span>
+                </button>
+                <button class="nav-item" data-tab="api-lab">
+                    <span class="nav-kicker">04</span>
+                    <span>
+                        <strong>API Lab</strong>
+                        <small>Raw request console</small>
+                    </span>
+                </button>
+            </nav>
+
+            <div class="sidebar-footer card-glass compact-card">
+                <div class="identity-row">
+                    <div class="avatar-badge" id="sidebarAvatar">FA</div>
+                    <div>
+                        <div id="sidebarUserName" class="identity-name">Guest</div>
+                        <div id="sidebarUserEmail" class="identity-subtle">Not logged in</div>
+                    </div>
+                </div>
+                <div class="mini-stats">
+                    <div>
+                        <span>User ID</span>
+                        <strong id="sidebarUserId">-</strong>
+                    </div>
+                    <div>
+                        <span>Account ID</span>
+                        <strong id="sidebarAccountId">-</strong>
+                    </div>
+                </div>
+                <button id="logoutBtn" class="btn btn-danger" type="button">Logout</button>
+            </div>
+        </aside>
+
+        <main class="main-shell">
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button id="sidebarToggle" class="icon-btn mobile-only" type="button">Menu</button>
+                    <div>
+                        <p class="eyebrow">Live API Workspace</p>
+                        <h2 id="pageTitle">Dashboard</h2>
+                    </div>
+                </div>
+                <div class="topbar-right">
+                    <div class="context-pill">
+                        <span>Status</span>
+                        <strong id="statusText">Ready</strong>
+                    </div>
+                    <div class="context-pill wide">
+                        <span>Backend</span>
+                        <strong id="activeBackendUrl">http://localhost:8000</strong>
+                    </div>
+                </div>
+            </header>
+
+            <section class="hero-banner card-solid">
+                <div>
+                    <p class="eyebrow">Session-linked testing</p>
+                    <h3>One interface for auth, account context, transactions, chat, and raw API calls.</h3>
+                </div>
+                <div class="hero-actions">
+                    <button id="quickRefreshBtn" class="btn btn-secondary" type="button">Refresh user + accounts</button>
+                    <button id="openApiLabBtn" class="btn btn-primary" type="button">Open API Lab</button>
+                </div>
+            </section>
+
+            <div class="content-grid">
+                <section id="dashboardTab" class="tab-panel active" data-tab-panel="dashboard">
+                    <div class="stats-grid">
+                        <article class="metric-card gradient-amber">
+                            <span class="metric-label">Current user</span>
+                            <strong id="metricUser">Guest</strong>
+                            <small id="metricUserSub">Login to fetch <code>/users/me</code></small>
+                        </article>
+                        <article class="metric-card gradient-cyan">
+                            <span class="metric-label">User ID</span>
+                            <strong id="metricUserId">-</strong>
+                            <small>Fetched after login</small>
+                        </article>
+                        <article class="metric-card gradient-coral">
+                            <span class="metric-label">Selected account</span>
+                            <strong id="metricAccountId">-</strong>
+                            <small id="metricAccountSub">Select inside Accounts</small>
+                        </article>
+                        <article class="metric-card gradient-lime">
+                            <span class="metric-label">Transactions loaded</span>
+                            <strong id="metricTxCount">0</strong>
+                            <small>Current account cache</small>
+                        </article>
+                    </div>
+                    <div class="dashboard-layout">
+                        <article class="card-solid panel">
+                            <div class="panel-head">
+                                <div>
+                                    <p class="eyebrow">Session overview</p>
+                                    <h3>Context snapshot</h3>
+                                </div>
+                                <button id="refreshDashboardBtn" class="btn btn-secondary" type="button">Refresh data</button>
+                            </div>
+                            <div class="snapshot-grid">
+                                <div>
+                                    <span>Total accounts</span>
+                                    <strong id="dashboardAccountCount">0</strong>
+                                </div>
+                                <div>
+                                    <span>Total balance</span>
+                                    <strong id="dashboardBalance">0.00</strong>
+                                </div>
+                                <div>
+                                    <span>Total income</span>
+                                    <strong id="dashboardIncome">0.00</strong>
+                                </div>
+                                <div>
+                                    <span>Total expense</span>
+                                    <strong id="dashboardExpense">0.00</strong>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article class="card-glass panel">
+                            <div class="panel-head">
+                                <div>
+                                    <p class="eyebrow">What this app auto-fetches</p>
+                                    <h3>Behavior defaults</h3>
+                                </div>
+                            </div>
+                            <ul class="signal-list">
+                                <li><code>user_id</code> comes from <code>/users/me</code> immediately after login.</li>
+                                <li><code>account_id</code> comes from the selected account card or dropdown.</li>
+                                <li>Transactions stay tied to the active account unless you switch it.</li>
+                                <li>Chat in Accounts and Transactions uses the same authenticated session.</li>
+                            </ul>
+                        </article>
+                    </div>
+
+                    <div class="two-column-layout charts-layout">
+                        <article class="card-solid panel">
+                            <div class="panel-head">
+                                <div>
+                                    <p class="eyebrow">Visual summary</p>
+                                    <h3>Account balance by type</h3>
+                                </div>
+                            </div>
+                            <div class="chart-card">
+                                <canvas id="accountsChart" height="240"></canvas>
+                            </div>
+                        </article>
+
+                        <article class="card-glass panel">
+                            <div class="panel-head">
+                                <div>
+                                    <p class="eyebrow">Income vs expense</p>
+                                    <h3>Current account flow</h3>
+                                </div>
+                            </div>
+                            <div class="chart-card">
+                                <canvas id="flowChart" height="240"></canvas>
+                            </div>
+                        </article>
+                    </div>
+
+                    <article class="card-solid panel">
+                        <div class="panel-head">
+                            <div>
+                                <p class="eyebrow">Recent cache</p>
+                                <h3>Latest transactions</h3>
+                            </div>
+                        </div>
+                        <div id="dashboardTransactions" class="stack-list empty-shell">
+                            <p>No transactions loaded yet for the current account.</p>
+                        </div>
+                    </article>
+                </section>
+
+                <section id="accountsTab" class="tab-panel" data-tab-panel="accounts">
+                    <div class="section-toolbar">
+                        <div>
+                            <p class="eyebrow">Account workspace</p>
+                            <h3>Fetch accounts once, select one, and test every related API.</h3>
+                        </div>
+                        <div class="button-row wrap">
+                            <button id="refreshAccountsBtn" class="btn btn-secondary" type="button">Refresh accounts</button>
+                            <button id="toggleAccountFormBtn" class="btn btn-primary" type="button">New account</button>
+                        </div>
+                    </div>
+
+                    <article id="accountFormCard" class="card-solid panel hidden">
+                        <div class="panel-head">
+                            <div>
+                                <p class="eyebrow">Create account</p>
+                                <h3>Open a new account with an initial income transaction</h3>
+                            </div>
+                        </div>
+                        <form id="accountForm" class="form-grid">
+                            <label>
+                                <span>Account name</span>
+                                <input id="accountNameInput" type="text" placeholder="Primary checking" required>
+                            </label>
+                            <label>
+                                <span>Account type</span>
+                                <select id="accountTypeInput" required>
+                                    <option value="checking">checking</option>
+                                    <option value="savings">savings</option>
+                                    <option value="credit">credit</option>
+                                </select>
+                            </label>
+                            <label>
+                                <span>Initial income amount</span>
+                                <input id="accountAmountInput" type="number" min="0" step="0.01" value="1000" required>
+                            </label>
+                            <label>
+                                <span>Category</span>
+                                <select id="accountCategoryInput" required>
+                                    <option value="other">other</option>
+                                    <option value="food">food</option>
+                                    <option value="utilities">utilities</option>
+                                    <option value="entertainment">entertainment</option>
+                                    <option value="transportation">transportation</option>
+                                </select>
+                            </label>
+                            <label class="full-span">
+                                <span>Description</span>
+                                <input id="accountDescriptionInput" type="text" value="Initial deposit" required>
+                            </label>
+                            <div class="button-row full-span">
+                                <button class="btn btn-primary" type="submit">Create account</button>
+                                <button id="cancelAccountFormBtn" class="btn btn-secondary" type="button">Cancel</button>
+                            </div>
+                        </form>
+                    </article>
+
+                    <div id="accountsGrid" class="account-grid empty-shell">
+                        <p>No accounts loaded yet. Use refresh or create your first account.</p>
+                    </div>
+
+                    <div class="two-column-layout">
+                        <article class="card-solid panel">
+                            <div class="panel-head">
+                                <div>
+                                    <p class="eyebrow">Active account</p>
+                                    <h3>Account-aware actions</h3>
+                                </div>
+                                <div class="pill-row">
+                                    <span class="context-pill"><span>Selected</span><strong id="accountActionSelectedId">-</strong></span>
+                                </div>
+                            </div>
+                            <div class="button-grid">
+                                <button id="getAccountDetailsBtn" class="btn btn-secondary" type="button">Get details</button>
+                                <button id="getAccountSummaryBtn" class="btn btn-secondary" type="button">Get summary</button>
+                                <button id="getAccountBalanceBtn" class="btn btn-secondary" type="button">Get balance</button>
+                                <button id="deleteAccountBtn" class="btn btn-danger" type="button">Delete account</button>
+                            </div>
+                            <pre id="accountActionOutput" class="output-box">Select an account to run account-specific endpoints.</pre>
+                        </article>
+
+                        <article class="card-glass panel chat-panel">
+                            <div class="panel-head">
+                                <div>
+                                    <p class="eyebrow">Embedded chatbot</p>
+                                    <h3>Ask about accounts</h3>
+                                </div>
+                            </div>
+                            <div class="prompt-strip">
+                                <button class="prompt-chip" data-chat-target="accounts" data-prompt="Show me a summary of my accounts.">Account summary</button>
+                                <button class="prompt-chip" data-chat-target="accounts" data-prompt="Which account has the highest balance?">Highest balance</button>
+                                <button class="prompt-chip" data-chat-target="accounts" data-prompt="Give me my current balance details.">Balance details</button>
+                            </div>
+                            <div id="accountsChatLog" class="chat-log empty-shell">
+                                <p>Ask a question to test <code>/chat/chat</code> from the Accounts section.</p>
+                            </div>
+                            <form id="accountsChatForm" class="chat-compose">
+                                <input id="accountsChatInput" type="text" placeholder="Ask about your accounts..." required>
+                                <button class="btn btn-primary" type="submit">Send</button>
+                            </form>
+                        </article>
+                    </div>
+                </section>
+
+                <section id="transactionsTab" class="tab-panel" data-tab-panel="transactions">
+                    <div class="section-toolbar">
+                        <div>
+                            <p class="eyebrow">Transaction workspace</p>
+                            <h3>Every transaction flow stays tied to the currently selected account.</h3>
+                        </div>
+                        <div class="button-row wrap">
+                            <button id="refreshTransactionsBtn" class="btn btn-secondary" type="button">Refresh transactions</button>
+                            <button id="toggleTransactionFormBtn" class="btn btn-primary" type="button">New transaction</button>
+                        </div>
+                    </div>
+
+                    <article class="card-solid panel">
+                        <div class="panel-head">
+                            <div>
+                                <p class="eyebrow">Active account for transactions</p>
+                                <h3>Account selection</h3>
+                            </div>
+                        </div>
+                        <div class="account-selector-row">
+                            <label class="selector-block">
+                                <span>Selected account</span>
+                                <select id="transactionAccountSelect"></select>
+                            </label>
+                            <div class="context-pill"><span>Current account_id</span><strong id="transactionCurrentAccountId">-</strong></div>
+                        </div>
+                    </article>
+                    <article id="transactionFormCard" class="card-solid panel hidden">
+                        <div class="panel-head">
+                            <div>
+                                <p class="eyebrow">Create transaction</p>
+                                <h3>Post a transaction to the selected account</h3>
+                            </div>
+                        </div>
+                        <form id="transactionForm" class="form-grid">
+                            <label>
+                                <span>Type</span>
+                                <select id="transactionTypeInput" required>
+                                    <option value="income">income</option>
+                                    <option value="expense">expense</option>
+                                </select>
+                            </label>
+                            <label>
+                                <span>Amount</span>
+                                <input id="transactionAmountInput" type="number" min="0" step="0.01" value="100" required>
+                            </label>
+                            <label>
+                                <span>Category</span>
+                                <select id="transactionCategoryInput" required>
+                                    <option value="other">other</option>
+                                    <option value="food">food</option>
+                                    <option value="utilities">utilities</option>
+                                    <option value="entertainment">entertainment</option>
+                                    <option value="transportation">transportation</option>
+                                </select>
+                            </label>
+                            <label class="full-span">
+                                <span>Description</span>
+                                <input id="transactionDescriptionInput" type="text" value="transaction entry" required>
+                            </label>
+                            <div class="button-row full-span">
+                                <button class="btn btn-primary" type="submit">Create transaction</button>
+                                <button id="cancelTransactionFormBtn" class="btn btn-secondary" type="button">Cancel</button>
+                            </div>
+                        </form>
+                    </article>
+
+                    <article class="card-glass panel">
+                        <div class="panel-head">
+                            <div>
+                                <p class="eyebrow">Filter + totals</p>
+                                <h3>Current account transaction cache</h3>
+                            </div>
+                        </div>
+                        <div class="filter-grid">
+                            <label>
+                                <span>Type filter</span>
+                                <select id="filterTypeInput">
+                                    <option value="all">all</option>
+                                    <option value="income">income</option>
+                                    <option value="expense">expense</option>
+                                </select>
+                            </label>
+                            <label>
+                                <span>Category filter</span>
+                                <select id="filterCategoryInput">
+                                    <option value="all">all</option>
+                                </select>
+                            </label>
+                            <div class="summary-chip">
+                                <span>Total income</span>
+                                <strong id="txIncomeTotal">0.00</strong>
+                            </div>
+                            <div class="summary-chip">
+                                <span>Total expense</span>
+                                <strong id="txExpenseTotal">0.00</strong>
+                            </div>
+                        </div>
+                    </article>
+
+                    <div class="two-column-layout charts-layout">
+                        <article class="card-solid panel">
+                            <div class="panel-head">
+                                <div>
+                                    <p class="eyebrow">Category split</p>
+                                    <h3>Spending by category</h3>
+                                </div>
+                            </div>
+                            <div class="chart-card">
+                                <canvas id="categoryChart" height="250"></canvas>
+                            </div>
+                        </article>
+
+                        <article class="card-glass panel">
+                            <div class="panel-head">
+                                <div>
+                                    <p class="eyebrow">Activity rhythm</p>
+                                    <h3>Recent transaction trend</h3>
+                                </div>
+                            </div>
+                            <div class="chart-card">
+                                <canvas id="trendChart" height="250"></canvas>
+                            </div>
+                        </article>
+                    </div>
+
+                    <div class="two-column-layout">
+                        <article class="card-solid panel">
+                            <div class="panel-head">
+                                <div>
+                                    <p class="eyebrow">Transactions</p>
+                                    <h3>Loaded transactions</h3>
+                                </div>
+                            </div>
+                            <div id="transactionsList" class="stack-list empty-shell">
+                                <p>No transactions loaded yet for the selected account.</p>
+                            </div>
+                        </article>
+
+                        <article class="card-glass panel">
+                            <div class="panel-head">
+                                <div>
+                                    <p class="eyebrow">Transaction actions</p>
+                                    <h3>Fetch, update, or delete by transaction ID</h3>
+                                </div>
+                            </div>
+                            <form id="transactionActionForm" class="field-stack compact">
+                                <label for="transactionIdInput">Transaction ID</label>
+                                <input id="transactionIdInput" type="number" min="1" placeholder="Enter transaction ID">
+                                <label for="updateAmountInput">Updated amount</label>
+                                <input id="updateAmountInput" type="number" min="0" step="0.01" placeholder="Optional">
+                                <label for="updateTypeInput">Updated type</label>
+                                <select id="updateTypeInput">
+                                    <option value="">keep existing</option>
+                                    <option value="income">income</option>
+                                    <option value="expense">expense</option>
+                                </select>
+                                <label for="updateCategoryInput">Updated category</label>
+                                <select id="updateCategoryInput">
+                                    <option value="">keep existing</option>
+                                    <option value="other">other</option>
+                                    <option value="food">food</option>
+                                    <option value="utilities">utilities</option>
+                                    <option value="entertainment">entertainment</option>
+                                    <option value="transportation">transportation</option>
+                                </select>
+                                <label for="updateDescriptionInput">Updated description</label>
+                                <input id="updateDescriptionInput" type="text" placeholder="Optional">
+                                <div class="button-grid">
+                                    <button id="getTransactionBtn" class="btn btn-secondary" type="button">Get transaction</button>
+                                    <button id="updateTransactionBtn" class="btn btn-secondary" type="button">Update transaction</button>
+                                    <button id="deleteTransactionBtn" class="btn btn-danger" type="button">Delete transaction</button>
+                                </div>
+                            </form>
+                            <pre id="transactionActionOutput" class="output-box">Use a transaction ID from the list to test fetch, update, or delete.</pre>
+                        </article>
+                    </div>
+
+                    <article class="card-glass panel chat-panel">
+                        <div class="panel-head">
+                            <div>
+                                <p class="eyebrow">Embedded chatbot</p>
+                                <h3>Ask about transactions</h3>
+                            </div>
+                        </div>
+                        <div class="prompt-strip">
+                            <button class="prompt-chip" data-chat-target="transactions" data-prompt="Show my recent transactions.">Recent transactions</button>
+                            <button class="prompt-chip" data-chat-target="transactions" data-prompt="What is my total expense this month?">Monthly expense</button>
+                            <button class="prompt-chip" data-chat-target="transactions" data-prompt="Which category did I spend the most on?">Top category</button>
+                        </div>
+                        <div id="transactionsChatLog" class="chat-log empty-shell">
+                            <p>Ask a question to test <code>/chat/chat</code> from the Transactions section.</p>
+                        </div>
+                        <form id="transactionsChatForm" class="chat-compose">
+                            <input id="transactionsChatInput" type="text" placeholder="Ask about your transactions..." required>
+                            <button class="btn btn-primary" type="submit">Send</button>
+                        </form>
+                    </article>
+                </section>
+
+                <section id="apiLabTab" class="tab-panel" data-tab-panel="api-lab">
+                    <div class="section-toolbar">
+                        <div>
+                            <p class="eyebrow">Developer-friendly console</p>
+                            <h3>Send raw requests without leaving the app.</h3>
+                        </div>
+                    </div>
+
+                    <div class="two-column-layout api-layout">
+                        <article class="card-solid panel">
+                            <div class="panel-head">
+                                <div>
+                                    <p class="eyebrow">Request builder</p>
+                                    <h3>Generic API console</h3>
+                                </div>
+                            </div>
+                            <form id="apiConsoleForm" class="field-stack">
+                                <label for="apiMethodInput">Method</label>
+                                <select id="apiMethodInput">
+                                    <option value="GET">GET</option>
+                                    <option value="POST">POST</option>
+                                    <option value="PUT">PUT</option>
+                                    <option value="DELETE">DELETE</option>
+                                </select>
+                                <label for="apiPathInput">Path</label>
+                                <input id="apiPathInput" type="text" value="/users/me">
+                                <label for="apiParamsInput">Query params</label>
+                                <input id="apiParamsInput" type="text" placeholder="key=value&x=y">
+                                <label for="apiBodyInput">JSON body</label>
+                                <textarea id="apiBodyInput" rows="10">{
+  "sample": "value"
+}</textarea>
+                                <button class="btn btn-primary" type="submit">Send request</button>
+                            </form>
+                        </article>
+                        <article class="card-glass panel">
+                            <div class="panel-head">
+                                <div>
+                                    <p class="eyebrow">Response + history</p>
+                                    <h3>Inspect what the backend returned</h3>
+                                </div>
+                            </div>
+                            <pre id="apiConsoleOutput" class="output-box">Responses from the API console will appear here.</pre>
+                            <div class="history-head">
+                                <h4>Request history</h4>
+                                <button id="downloadHistoryBtn" class="btn btn-secondary" type="button">Download logs</button>
+                            </div>
+                            <div id="apiHistory" class="history-list empty-shell">
+                                <p>No API calls yet.</p>
+                            </div>
+                        </article>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <div id="toast" class="toast"></div>
+    <div id="loadingOverlay" class="loading-overlay hidden">
+        <div class="loader-card">
+            <div class="loader-orbit"></div>
+            <p id="loadingText">Loading...</p>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
 </body>
 </html>
