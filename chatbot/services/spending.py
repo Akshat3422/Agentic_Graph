@@ -39,6 +39,7 @@ def total_spend_by_category(db: Session, params: dict):
         q = q.filter(Transactions.timestamp >= start_utc, Transactions.timestamp <= end_utc)
 
     rows = q.group_by(Transactions.category).order_by(desc(func.sum(Transactions.amount))).all()
+    print(f"DEBUG: total_spend_by_category query returned {len(rows)} rows for account_id={account_id}, user_id={user_id}, category={params.get('category')}, time_bounds={time_bounds}")
 
     return [
         {

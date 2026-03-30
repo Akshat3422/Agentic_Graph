@@ -10,7 +10,7 @@ questions=[
     # "How much total money have I spent from account 1?",
     # "What is my total spend this month from account 1?",
     # "How much did I spend on food from account 1?",
-    # "Which category has the highest spending in account 1?",
+    "What are the total expenses in the shopping category in account 1?",
     # "What is my average daily spending from account 1?",
     # "What is my current balance in account 1?",
     # "How much did I spend in the last 7 days from account 1?",
@@ -22,7 +22,7 @@ questions=[
     # "Provide me the summary of total spend in each category  in the account 1?",
     # "What accounts do I have linked?",
     # "Show me summary for account 1"
-    "Compare the balances of accounts with IDs 1, 2, and 3?"
+    # "Compare the balances of accounts with IDs 1, 2, and 3?"
 ]
 
 answers=[]
@@ -40,22 +40,22 @@ for question in questions:
         "user_id":1
     }
 
-    answer = final_graph.invoke(initial_state) #type:ignore
-    answers.append(answer)
+    # answer = final_graph.invoke(initial_state) #type:ignore
+    # answers.append(answer)
 
 
 
-for answer in answers:
-    print(f"\n{answer['final_answer']} \n")
+# for answer in answers:
+#     print(f"\n{answer['final_answer']} \n")
 
 
-print(answers[0])
+# print(answers[0])
 
 
-# params={"account_id":1,
-#         "user_id":1,
-#         "category":"food"
-#         }
-# time_bounds = total_spend_by_category(db,params=params)
-# print(time_bounds)
+params={"account_id":1,
+        "user_id":1,
+        "category":"shopping"
+        }
+time_bounds = total_spend_by_category(db,params=params)
+print(time_bounds)
 

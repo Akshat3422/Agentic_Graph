@@ -39,3 +39,6 @@ class GraphState(TypedDict):
     # Final output
     final_answer: Optional[str]
 
+    # Inner loop
+    expanded_queries: Optional[List[str]]
+    expanded_index: Optional[int]

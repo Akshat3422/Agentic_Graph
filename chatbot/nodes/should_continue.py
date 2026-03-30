@@ -11,3 +11,13 @@ def should_continue(state: GraphState) -> str:
         return "continue"
 
     return "stop"
+
+
+def should_continue_inner(state: GraphState) -> str:
+    idx = state.get("expanded_index", 0)
+    queries = state.get("expanded_queries", [])
+
+    if idx < len(queries):
+        return "continue_inner"
+    
+    return "outer"
