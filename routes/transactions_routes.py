@@ -196,7 +196,11 @@ def update_transaction(
             account.balance += transaction.amount #type: ignore
 
         # 2️⃣ Determine new values
-        new_amount = transaction_details.amount or transaction.amount
+        new_amount = (
+            transaction_details.amount
+            if transaction_details.amount is not None
+            else transaction.amount
+        )
         new_type = (
             transaction_details.transaction_type.value
             if transaction_details.transaction_type
