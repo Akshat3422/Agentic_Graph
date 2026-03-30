@@ -31,6 +31,12 @@ def login(user_credentials:OAuth2PasswordRequestForm=Depends(),db:Session=Depend
     if not verify(user_credentials.password,user.password):
         logger.warning(f"Invalid login attempt - bad password for user: {user_credentials.username}")
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail="Invalid Credentials") 
+    if not user.is_email_verified:
+        logger.warning(f"Unverified user attempted login: {user_credentials.username}")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Email not verified. Verify your email before logging in."
+        )
     access_token=create_access_token(data={"user_id":user.id})
     logger.info(f"User logged in: {user.username}")
     return {"access_token":access_token,"token_type":"bearer"}
