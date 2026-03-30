@@ -56,6 +56,7 @@ class TransactionType(Enum):
 
 class ExpenditureCategory(Enum):
     FOOD="food"
+    SHOPPING="shopping"
     UTILITIES="utilities"
     ENTERTAINMENT="entertainment"
     TRANSPORTATION="transportation"
