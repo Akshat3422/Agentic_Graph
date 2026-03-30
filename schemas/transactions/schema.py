@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from typing import Optional
 from enum import Enum
 from datetime import datetime,timezone
+from decimal import Decimal
 
 
 
@@ -14,6 +15,7 @@ class TransactionType(Enum):
 
 class ExpenditureCategory(Enum):
     FOOD="food"
+    SHOPPING="shopping"
     UTILITIES="utilities"
     ENTERTAINMENT="entertainment"
     TRANSPORTATION="transportation"
@@ -23,7 +25,7 @@ class ExpenditureCategory(Enum):
 
 class TransactionModel(BaseModel):
     transaction_type: TransactionType
-    amount: int
+    amount: Decimal
     description: str
     category: ExpenditureCategory
     timestamp:Optional[datetime] = None
@@ -42,7 +44,7 @@ class TransactionOut(BaseModel):
     }
 
 class TransactionUpdate(BaseModel):
-    amount: Optional[int] = None
+    amount: Optional[Decimal] = None
     description: Optional[str] = None
     category: Optional[ExpenditureCategory] = None
     transaction_type: Optional[TransactionType] = None
