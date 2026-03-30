@@ -184,6 +184,7 @@
                         <span>Backend</span>
                         <strong id="activeBackendUrl">http://localhost:8000</strong>
                     </div>
+                    <button id="topbarLogoutBtn" class="btn btn-danger" type="button">Logout</button>
                 </div>
             </header>
 
@@ -237,15 +238,15 @@
                                     <strong id="dashboardAccountCount">0</strong>
                                 </div>
                                 <div>
-                                    <span>Total balance</span>
+                                    <span id="dashboardBalanceLabel">Selected balance</span>
                                     <strong id="dashboardBalance">0.00</strong>
                                 </div>
                                 <div>
-                                    <span>Total income</span>
+                                    <span id="dashboardIncomeLabel">Selected income</span>
                                     <strong id="dashboardIncome">0.00</strong>
                                 </div>
                                 <div>
-                                    <span>Total expense</span>
+                                    <span id="dashboardExpenseLabel">Selected expense</span>
                                     <strong id="dashboardExpense">0.00</strong>
                                 </div>
                             </div>
@@ -347,6 +348,7 @@
                                 <select id="accountCategoryInput" required>
                                     <option value="other">other</option>
                                     <option value="food">food</option>
+                                    <option value="shopping">shopping</option>
                                     <option value="utilities">utilities</option>
                                     <option value="entertainment">entertainment</option>
                                     <option value="transportation">transportation</option>
@@ -461,6 +463,7 @@
                                 <select id="transactionCategoryInput" required>
                                     <option value="other">other</option>
                                     <option value="food">food</option>
+                                    <option value="shopping">shopping</option>
                                     <option value="utilities">utilities</option>
                                     <option value="entertainment">entertainment</option>
                                     <option value="transportation">transportation</option>
@@ -572,6 +575,7 @@
                                     <option value="">keep existing</option>
                                     <option value="other">other</option>
                                     <option value="food">food</option>
+                                    <option value="shopping">shopping</option>
                                     <option value="utilities">utilities</option>
                                     <option value="entertainment">entertainment</option>
                                     <option value="transportation">transportation</option>

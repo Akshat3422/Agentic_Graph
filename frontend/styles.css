@@ -977,6 +977,10 @@ textarea:focus {
         padding: 18px;
     }
 
+    .auth-panel {
+        order: -1;
+    }
+
     .sidebar {
         position: fixed;
         left: 16px;
@@ -1005,6 +1009,10 @@ textarea:focus {
     .history-head {
         flex-direction: column;
         align-items: stretch;
+    }
+
+    .topbar-right .btn {
+        width: 100%;
     }
 
     .context-pill.wide,

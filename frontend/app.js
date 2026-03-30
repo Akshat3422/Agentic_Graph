@@ -1,5 +1,6 @@
 ﻿
 const STORAGE_KEY = "financial-assistant-spa-state";
+const BACKEND_TRANSACTION_TYPES = ["income", "expense"];
 
 const state = {
   baseUrl: "http://localhost:8000",
@@ -26,6 +27,7 @@ function cacheElements() {
     "sidebar", "sidebarToggle", "sidebarUserName", "sidebarUserEmail", "sidebarUserId", "sidebarAccountId", "sidebarAvatar",
     "metricUser", "metricUserSub", "metricUserId", "metricAccountId", "metricAccountSub", "metricTxCount",
     "dashboardAccountCount", "dashboardBalance", "dashboardIncome", "dashboardExpense", "dashboardTransactions",
+    "dashboardBalanceLabel", "dashboardIncomeLabel", "dashboardExpenseLabel",
     "accountsGrid", "accountActionSelectedId", "accountActionOutput", "accountFormCard",
     "transactionFormCard", "transactionAccountSelect", "transactionCurrentAccountId", "transactionsList",
     "transactionActionOutput", "filterTypeInput", "filterCategoryInput", "txIncomeTotal", "txExpenseTotal",
@@ -37,6 +39,20 @@ function cacheElements() {
   ids.forEach((id) => {
     el[id] = document.getElementById(id);
   });
+}
+
+function renderTransactionTypeOptions() {
+  const createOptions = BACKEND_TRANSACTION_TYPES.map(
+    (type) => `<option value="${type}">${type}</option>`
+  ).join("");
+  const updateOptions = ['<option value="">keep existing</option>']
+    .concat(
+      BACKEND_TRANSACTION_TYPES.map((type) => `<option value="${type}">${type}</option>`)
+    )
+    .join("");
+
+  document.getElementById("transactionTypeInput").innerHTML = createOptions;
+  document.getElementById("updateTypeInput").innerHTML = updateOptions;
 }
 
 function hydrateState() {
@@ -90,6 +106,14 @@ function showToast(message, type = "info") {
 function setAuthBanner(message, type = "info") {
   el.authStatus.textContent = message;
   el.authStatus.className = `inline-banner ${type}`;
+}
+
+function getAuthEmailCandidate() {
+  return (
+    document.getElementById("verifyEmail")?.value?.trim() ||
+    document.getElementById("registerEmail")?.value?.trim() ||
+    ""
+  );
 }
 
 function formatCurrency(value) {
@@ -525,8 +549,13 @@ function renderSession() {
   el.accountActionSelectedId.textContent = state.selectedAccountId ?? "-";
   el.transactionCurrentAccountId.textContent = state.selectedAccountId ?? "-";
 
+  const selectedAccount = state.accounts.find(
+    (account) => Number(account.id) === Number(state.selectedAccountId)
+  );
   const totalBalance = state.accounts.reduce((sum, account) => sum + Number(account.balance || 0), 0);
-  el.dashboardBalance.textContent = formatCurrency(totalBalance);
+  const visibleBalance = selectedAccount ? Number(selectedAccount.balance || 0) : totalBalance;
+  el.dashboardBalance.textContent = formatCurrency(visibleBalance);
+  el.dashboardBalanceLabel.textContent = selectedAccount ? "Selected balance" : "Total balance";
 
   // Calculate income and expense - normalize transaction_type comparison
   const income = state.transactions
@@ -545,6 +574,8 @@ function renderSession() {
 
   el.dashboardIncome.textContent = formatCurrency(income);
   el.dashboardExpense.textContent = formatCurrency(expense);
+  el.dashboardIncomeLabel.textContent = selectedAccount ? "Selected income" : "Loaded income";
+  el.dashboardExpenseLabel.textContent = selectedAccount ? "Selected expense" : "Loaded expense";
 
   el.appShell.classList.toggle("hidden", !state.token);
   el.authShell.classList.toggle("hidden", Boolean(state.token));
@@ -723,6 +754,29 @@ function escapeHtml(text) {
     .replaceAll("'", "&#39;");
 }
 
+function promptHasExplicitAccountId(prompt) {
+  return /\b(account|account\s+id|acct|bank|bank\s+id)\s*[:#-]?\s*\d+\b/i.test(prompt);
+}
+
+function buildChatPrompt(prompt, target) {
+  const cleanPrompt = String(prompt || "").trim();
+  if (!cleanPrompt) return cleanPrompt;
+
+  if (!state.selectedAccountId) {
+    return cleanPrompt;
+  }
+
+  if (promptHasExplicitAccountId(cleanPrompt)) {
+    return cleanPrompt;
+  }
+
+  if (target === "accounts" || target === "transactions") {
+    return `${cleanPrompt} For account id ${state.selectedAccountId}.`;
+  }
+
+  return cleanPrompt;
+}
+
 async function handleLogin(event) {
   event.preventDefault();
   const form = new FormData(event.currentTarget);
@@ -745,6 +799,13 @@ async function handleLogin(event) {
   } catch (error) {
     showToast(error.message, "error");
     setAuthBanner(`Login failed: ${error.message}`, "error");
+    if (String(error.message).toLowerCase().includes("email not verified")) {
+      switchAuthView("verify");
+      const email = getAuthEmailCandidate();
+      if (email) {
+        document.getElementById("verifyEmail").value = email;
+      }
+    }
   } finally {
     setLoading(false);
   }
@@ -761,7 +822,8 @@ async function handleRegister(event) {
       password: String(form.get("password") || "")
     };
     const data = await apiRequest("POST", "/users/", { json: payload, skipAuth: true });
-    setAuthBanner(`Account created. Check email for OTP. ${typeof data === "string" ? data : ""}`.trim(), "success");
+    const message = typeof data === "string" ? data : data?.detail || "Account created. Check email for OTP.";
+    setAuthBanner(message, "success");
     showToast("User created. Verify OTP next.", "success");
     switchAuthView("verify");
     document.getElementById("verifyEmail").value = payload.email;
@@ -796,12 +858,23 @@ async function handleVerify(event) {
   }
 }
 async function handleResendOtp() {
-  if (!ensureAuthenticated("Login first, then resend OTP if needed.")) return;
+  const email = getAuthEmailCandidate();
+  if (!email) {
+    switchAuthView("verify");
+    setAuthBanner("Enter your email in Verify OTP, then resend the OTP.", "warning");
+    showToast("Email is required to resend OTP.", "warning");
+    return;
+  }
   setLoading(true, "Resending OTP...");
   try {
-    const data = await apiRequest("POST", "/users/resend-otp");
+    document.getElementById("verifyEmail").value = email;
+    const data = await apiRequest("POST", "/users/resend-otp", {
+      json: { email },
+      skipAuth: true
+    });
     setAuthBanner(typeof data === "string" ? data : data.detail || "OTP resent successfully.", "success");
     showToast("OTP resent.", "success");
+    switchAuthView("verify");
   } catch (error) {
     showToast(error.message, "error");
     setAuthBanner(`Resend OTP failed: ${error.message}`, "error");
@@ -819,6 +892,10 @@ function logout() {
   state.selectedAccountId = null;
   state.activeTab = "dashboard";
   persistState();
+  document.getElementById("loginForm").reset();
+  document.getElementById("registerForm").reset();
+  document.getElementById("verifyForm").reset();
+  setAuthBanner("You have been logged out. Login again to continue.", "info");
   renderSession();
   renderAccounts();
   renderTransactions();
@@ -832,14 +909,9 @@ function logout() {
   el.sidebarAccountId.textContent = "-";
   el.sidebarAvatar.textContent = "FA";
   
-  showToast("✅ Logged out successfully. You can now login or register.", "success");
+  showToast("Logged out successfully. You can now login or register.", "success");
   setStatus("Ready");
-  
-  // Optional: Clear auth view select
-  document.querySelectorAll(".auth-tab").forEach(tab => tab.classList.remove("active"));
-  document.querySelectorAll(".auth-view").forEach(view => view.classList.remove("active"));
-  document.querySelector('[data-auth-view="login"]').classList.add("active");
-  document.getElementById("loginView").classList.add("active");
+  switchAuthView("login");
 }
 
 async function handleCreateAccount(event) {
@@ -940,8 +1012,13 @@ async function handleCreateTransaction(event) {
 
   setLoading(true, "Creating transaction...");
   try {
+    const transactionType = document.getElementById("transactionTypeInput").value;
+    if (!BACKEND_TRANSACTION_TYPES.includes(transactionType)) {
+      throw new Error(`Unsupported transaction type. Allowed values: ${BACKEND_TRANSACTION_TYPES.join(", ")}`);
+    }
+
     const payload = {
-      transaction_type: document.getElementById("transactionTypeInput").value,
+      transaction_type: transactionType,
       amount: Number(document.getElementById("transactionAmountInput").value || 0),
       description: document.getElementById("transactionDescriptionInput").value.trim(),
       category: document.getElementById("transactionCategoryInput").value,
@@ -995,7 +1072,13 @@ async function updateTransactionById() {
   const category = document.getElementById("updateCategoryInput").value;
   const description = document.getElementById("updateDescriptionInput").value.trim();
   if (amount !== "") payload.amount = Number(amount);
-  if (type) payload.transaction_type = type;
+  if (type) {
+    if (!BACKEND_TRANSACTION_TYPES.includes(type)) {
+      showToast(`Unsupported transaction type. Allowed values: ${BACKEND_TRANSACTION_TYPES.join(", ")}`, "warning");
+      return;
+    }
+    payload.transaction_type = type;
+  }
   if (category) payload.category = category;
   if (description) payload.description = description;
 
@@ -1046,9 +1129,11 @@ async function sendChat(target, promptText) {
     return;
   }
 
+  const promptForApi = buildChatPrompt(prompt, target);
+
   setLoading(true, "Sending chat request...");
   try {
-    const data = await apiRequest("POST", "/chat/chat", { params: { user_input: prompt } });
+    const data = await apiRequest("POST", "/chat/chat", { params: { user_input: promptForApi } });
     state.chatHistory[target].push({ question: prompt, answer: data, status: "ok" });
     persistState();
     renderChatLog(target);
@@ -1135,6 +1220,7 @@ function bindEvents() {
   document.getElementById("verifyForm").addEventListener("submit", handleVerify);
   document.getElementById("resendOtpBtn").addEventListener("click", handleResendOtp);
   document.getElementById("logoutBtn").addEventListener("click", logout);
+  document.getElementById("topbarLogoutBtn").addEventListener("click", logout);
   document.getElementById("quickRefreshBtn").addEventListener("click", refreshSessionData);
   document.getElementById("refreshDashboardBtn").addEventListener("click", refreshSessionData);
   document.getElementById("openApiLabBtn").addEventListener("click", () => switchTab("api-lab"));
@@ -1187,6 +1273,7 @@ function bindEvents() {
 
 async function bootstrap() {
   cacheElements();
+  renderTransactionTypeOptions();
   hydrateState();
   bindEvents();
   renderSession();
@@ -1209,7 +1296,3 @@ async function bootstrap() {
 }
 
 document.addEventListener("DOMContentLoaded", bootstrap);
-
-
-
-
