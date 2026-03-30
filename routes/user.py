@@ -4,7 +4,7 @@ from database import engine,get_db
 from datetime import datetime
 from oauth2 import get_current_user
 from schemas.users.schema import UserOut, UserCreate, DeleteAccountRequest, UserUpdate
-from schemas.email.schema import VerifyEmailOTP
+from schemas.email.schema import VerifyEmailOTP, ResendEmailOTPRequest
 from utils import send_otp_email,generate_otp,otp_expiry_time,hash,verify
 from models import User
 from app_logger import setup_logging
@@ -44,6 +44,7 @@ def create_user(user:UserCreate, db:Session=Depends(get_db)):
 
         send_otp_email(new_user.email, otp) # type: ignore
         logger.info(f"New user created: {new_user.username}, OTP sent to email.")
+        return {"detail": "User created successfully. OTP sent to email."}
     except Exception as e:
         db.rollback()  # type: ignore
         logger.error(f"Error creating user: {str(e)}")
@@ -251,13 +252,14 @@ def update_user(
 
 @user_router.post("/resend-otp",status_code=status.HTTP_200_OK)
 def resend_email_otp(
+    request: ResendEmailOTPRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
 ):
     try:
+        current_user = db.query(User).filter(User.email == request.email).first()
         if not current_user:
-            logger.warning("Unauthorized User")
-            raise HTTPException(status_code=401, detail="Unauthorized")
+            logger.warning(f"OTP resend requested for unknown email: {request.email}")
+            raise HTTPException(status_code=404, detail="User not found")
 
         if current_user.is_email_verified: # type: ignore
             logger.warning("Email already verified")
