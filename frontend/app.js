@@ -1,5 +1,4 @@
-﻿
-const STORAGE_KEY = "financial-assistant-spa-state";
+﻿const STORAGE_KEY = "financial-assistant-spa-state";
 const BACKEND_TRANSACTION_TYPES = ["income", "expense"];
 
 const state = {
@@ -20,6 +19,12 @@ const state = {
 };
 
 const el = {};
+
+let renderChartsTimeout;
+function debouncedRenderCharts() {
+  clearTimeout(renderChartsTimeout);
+  renderChartsTimeout = setTimeout(renderCharts, 150);
+}
 
 function cacheElements() {
   const ids = [
@@ -90,6 +95,9 @@ function setStatus(message) {
 }
 
 function setLoading(isLoading, message = "Loading...") {
+  if (!el.loadingOverlay || !el.loadingText) {
+    return;
+  }
   el.loadingOverlay.classList.toggle("hidden", !isLoading);
   el.loadingText.textContent = message;
 }
@@ -376,7 +384,21 @@ async function apiRequest(method, path, options = {}) {
     body = options.form.toString();
   }
 
-  const response = await fetch(url.toString(), { method, headers, body });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+  let response;
+  try {
+    response = await fetch(url.toString(), { method, headers, body, signal: controller.signal });
+  } catch (fetchError) {
+    clearTimeout(timeoutId);
+    if (fetchError.name === "AbortError") {
+      throw new Error("Request timeout after 10 seconds. Check backend connection or CORS settings.");
+    }
+    throw new Error(`Network error: ${fetchError.message}`);
+  }
+  clearTimeout(timeoutId);
+
   const contentType = response.headers.get("content-type") || "";
   let data;
   if (contentType.includes("application/json")) {
@@ -451,6 +473,7 @@ function syncSelectedAccount() {
   }
   persistState();
 }
+
 async function fetchTransactions({ silent = false } = {}) {
   if (!ensureAuthenticated()) return [];
   if (!state.selectedAccountId) {
@@ -476,11 +499,16 @@ async function fetchTransactions({ silent = false } = {}) {
 async function refreshSessionData() {
   if (!state.token) return;
   setLoading(true, "Refreshing session data...");
-  await refreshCurrentUser();
-  await fetchAccounts({ silent: true });
-  await fetchTransactions({ silent: true });
-  setLoading(false);
-  showToast("Session data refreshed.", "success");
+  try {
+    await refreshCurrentUser();
+    await fetchAccounts({ silent: true });
+    await fetchTransactions({ silent: true });
+    showToast("Session data refreshed.", "success");
+  } catch (error) {
+    showToast(`Refresh failed: ${error.message}`, "error");
+  } finally {
+    setLoading(false);
+  }
 }
 
 function setSelectedAccount(accountId) {
@@ -489,6 +517,7 @@ function setSelectedAccount(accountId) {
   renderSession();
   renderAccounts();
   renderTransactions();
+  renderCharts();
 }
 
 function switchAuthView(viewName) {
@@ -557,14 +586,13 @@ function renderSession() {
   el.dashboardBalance.textContent = formatCurrency(visibleBalance);
   el.dashboardBalanceLabel.textContent = selectedAccount ? "Selected balance" : "Total balance";
 
-  // Calculate income and expense - normalize transaction_type comparison
   const income = state.transactions
     .filter((tx) => {
       const txType = String(tx.transaction_type || "").toLowerCase().trim();
       return txType === "income";
     })
     .reduce((sum, tx) => sum + Number(tx.amount || 0), 0);
-  
+
   const expense = state.transactions
     .filter((tx) => {
       const txType = String(tx.transaction_type || "").toLowerCase().trim();
@@ -579,7 +607,6 @@ function renderSession() {
 
   el.appShell.classList.toggle("hidden", !state.token);
   el.authShell.classList.toggle("hidden", Boolean(state.token));
-  renderCharts();
 }
 
 function renderAccounts() {
@@ -612,7 +639,6 @@ function renderAccounts() {
   el.transactionAccountSelect.innerHTML = accountOptions;
 
   renderDashboardTransactions();
-  renderCharts();
 }
 
 function renderDashboardTransactions() {
@@ -622,7 +648,6 @@ function renderDashboardTransactions() {
     return;
   }
 
-  // Sort transactions by timestamp (latest first)
   const sortedTransactions = [...state.transactions].sort((a, b) => {
     const dateA = new Date(a.timestamp || 0).getTime();
     const dateB = new Date(b.timestamp || 0).getTime();
@@ -640,17 +665,17 @@ function renderDashboardTransactions() {
       <small>${tx.category || "uncategorized"} · ${formatDate(tx.timestamp)}</small>
     </article>`).join("");
 }
+
 function getFilteredTransactions() {
   const typeFilter = el.filterTypeInput.value || "all";
   const categoryFilter = el.filterCategoryInput.value || "all";
-  
+
   const filtered = state.transactions.filter((tx) => {
     const typeMatch = typeFilter === "all" || tx.transaction_type === typeFilter;
     const categoryMatch = categoryFilter === "all" || tx.category === categoryFilter;
     return typeMatch && categoryMatch;
   });
 
-  // Sort by timestamp (latest first)
   return filtered.sort((a, b) => {
     const dateA = new Date(a.timestamp || 0).getTime();
     const dateB = new Date(b.timestamp || 0).getTime();
@@ -696,7 +721,6 @@ function renderTransactions() {
       <div><strong>${tx.description || "No description"}</strong></div>
       <small>${tx.transaction_type} · ${tx.category || "uncategorized"} · ${formatDate(tx.timestamp)}</small>
     </article>`).join("");
-  renderCharts();
 }
 
 function renderChatLog(target) {
@@ -857,6 +881,7 @@ async function handleVerify(event) {
     setLoading(false);
   }
 }
+
 async function handleResendOtp() {
   const email = getAuthEmailCandidate();
   if (!email) {
@@ -901,14 +926,13 @@ function logout() {
   renderTransactions();
   renderChatLog("accounts");
   renderChatLog("transactions");
-  
-  // Reset UI elements
+
   el.sidebarUserName.textContent = "Guest";
   el.sidebarUserEmail.textContent = "Not logged in";
   el.sidebarUserId.textContent = "-";
   el.sidebarAccountId.textContent = "-";
   el.sidebarAvatar.textContent = "FA";
-  
+
   showToast("Logged out successfully. You can now login or register.", "success");
   setStatus("Ready");
   switchAuthView("login");
@@ -1059,6 +1083,7 @@ async function getTransactionById() {
     setLoading(false);
   }
 }
+
 async function updateTransactionById() {
   const transactionId = Number(document.getElementById("transactionIdInput").value || 0);
   if (!transactionId) {
@@ -1267,32 +1292,105 @@ function bindEvents() {
   });
 
   window.addEventListener("resize", () => {
-    renderCharts();
+    debouncedRenderCharts();
   });
 }
 
+let bootstrapped = false;
+
 async function bootstrap() {
+  if (bootstrapped) {
+    console.warn("Bootstrap already running, skipping duplicate call");
+    return;
+  }
+  bootstrapped = true;
+
+  // Always run these first — required before any render
   cacheElements();
-  renderTransactionTypeOptions();
   hydrateState();
+  renderTransactionTypeOptions();
   bindEvents();
-  renderSession();
-  renderAccounts();
-  renderTransactions();
-  renderChatLog("accounts");
-  renderChatLog("transactions");
-  renderApiHistory();
-  renderCharts();
-  el.backendUrlInput.value = state.baseUrl;
-  setStatus(state.token ? "Restoring session" : "Ready");
+
+  // Set active tab UI
+  const tab = state.activeTab || "dashboard";
+  document.querySelectorAll(".nav-item").forEach((button) => {
+    button.classList.toggle("active", button.dataset.tab === tab);
+  });
+  document.querySelectorAll(".tab-panel").forEach((panel) => {
+    panel.classList.toggle("active", panel.dataset.tabPanel === tab);
+  });
+  el.pageTitle.textContent = tab === "api-lab" ? "API Lab" : `${tab.charAt(0).toUpperCase()}${tab.slice(1)}`;
 
   if (state.token) {
-    await refreshCurrentUser();
-    await fetchAccounts({ silent: true });
-    await fetchTransactions({ silent: true });
-    switchTab(state.activeTab);
-    setStatus("Authenticated");
+    // Authenticated path: fetch data then render
+    try {
+      const user = await apiRequest("GET", "/users/me").catch((err) => { console.warn(err); return null; });
+      const accounts = await apiRequest("GET", "/accounts/").catch((err) => { console.warn(err); return []; });
+
+      if (user) {
+        state.user = user;
+        state.userId = user.id;
+      }
+      if (Array.isArray(accounts)) {
+        state.accounts = accounts;
+        syncSelectedAccount();
+      }
+
+      let transactions = [];
+      if (state.selectedAccountId) {
+        transactions = await apiRequest("GET", `/transactions/account/${state.selectedAccountId}`)
+          .catch((err) => { console.warn(err); return []; });
+      }
+      if (Array.isArray(transactions)) {
+        state.transactions = transactions;
+      }
+
+      renderSession();
+      renderAccounts();
+      renderTransactions();
+      renderChatLog("accounts");
+      renderChatLog("transactions");
+      renderApiHistory();
+      renderCharts();
+      setStatus("Authenticated");
+    } catch (error) {
+      console.error("Bootstrap error:", error);
+      // Token may be invalid/expired — clear it
+      state.token = null;
+      state.user = null;
+      state.userId = null;
+      persistState();
+      renderSession();
+      renderAccounts();
+      renderTransactions();
+      renderChatLog("accounts");
+      renderChatLog("transactions");
+      renderApiHistory();
+      setStatus("Ready");
+      showToast("Session expired. Please log in again.", "warning");
+      switchAuthView("login");
+    }
+  } else {
+    // Unauthenticated path: just render empty shells
+    renderSession();
+    renderAccounts();
+    renderTransactions();
+    renderChatLog("accounts");
+    renderChatLog("transactions");
+    renderApiHistory();
+    renderCharts();
+    setStatus("Ready");
   }
 }
 
 document.addEventListener("DOMContentLoaded", bootstrap);
+
+window.addEventListener("error", (event) => {
+  setLoading(false);
+  console.error("Uncaught error:", event.error);
+});
+
+window.addEventListener("unhandledrejection", (event) => {
+  setLoading(false);
+  console.error("Unhandled rejection:", event.reason);
+});
