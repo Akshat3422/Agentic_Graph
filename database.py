@@ -9,9 +9,9 @@ post_gres_db_name=os.getenv("POSTGRES_DB_NAME")
 post_gres_user=os.getenv("POSTGRES_USER")
 post_gres_password=os.getenv("POSTGRES_PASSWORD")
 
-engine = create_engine(
-    f"postgresql+psycopg2://{post_gres_user}:{post_gres_password}@localhost:5432/{post_gres_db_name}"
-)
+
+DATAbASE_URL=f"postgresql://{post_gres_user}:{post_gres_password}@db.djjvgrlkdhwyrorfsdaf.supabase.co:5432/{post_gres_db_name}"
+engine = create_engine(DATAbASE_URL,onnect_args={"sslmode": "require"})
 
 def get_db():
     db=SessionLocal()

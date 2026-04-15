@@ -10,8 +10,14 @@ from chatbot.graph import final_graph,router as new_router
 
 app=FastAPI()
 
-Base.metadata.create_all(bind=engine)
-get_db()  # to ensure the database connection is established
+@app.on_event("startup")
+def startup():
+    try:
+        Base.metadata.create_all(bind=engine)
+    except Exception as e:
+        print("DB init failed:", e)
+
+
 
 from fastapi.middleware.cors import CORSMiddleware
 
