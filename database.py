@@ -10,7 +10,7 @@ post_gres_user=os.getenv("POSTGRES_USER")
 post_gres_password=os.getenv("POSTGRES_PASSWORD")
 
 
-DATAbASE_URL=f"postgresql://{post_gres_user}:{post_gres_password}@db.djjvgrlkdhwyrorfsdaf.supabase.co:5432/{post_gres_db_name}"
+DATAbASE_URL=os.getenv("DATABASE_URL",f"postgresql://{post_gres_user}:{post_gres_password}@localhost:5432/{post_gres_db_name}")
 engine = create_engine(DATAbASE_URL,onnect_args={"sslmode": "require"})
 
 def get_db():
