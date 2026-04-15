@@ -4,4 +4,3 @@
     { "src": "/api/(.*)", "dest": "api/index.py" }
   ]
 }
-postgresql://postgres:akshat3422@@db.djjvgrlkdhwyrorfsdaf.supabase.co:5432/postgres
