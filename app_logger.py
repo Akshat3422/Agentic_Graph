@@ -1,34 +1,39 @@
 import logging
-from logging.handlers import RotatingFileHandler
-from logging import StreamHandler
 import os
+from logging import StreamHandler
+from logging.handlers import RotatingFileHandler
 
-LOGS="logs" 
+IS_SERVERLESS = os.getenv("VERCEL") == "1" or bool(os.getenv("AWS_LAMBDA_FUNCTION_NAME"))
 
-# Make sure the logs directory exists
-os.makedirs(LOGS, exist_ok=True)
 
-LOGGING_DIRECTORY = os.path.join(LOGS, "app.log")
-
-def setup_logging(name: str)->logging.Logger:
-    logger=logging.getLogger(name)
+def setup_logging(name: str) -> logging.Logger:
+    logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
     if logger.hasHandlers():
         return logger
-    
-    handlers=RotatingFileHandler(
-        LOGGING_DIRECTORY,
-        maxBytes=5*1024*1024,  # 5 MB
-        backupCount=5)
 
-    formatter=logging.Formatter(
+    formatter = logging.Formatter(
         "%(asctime)s | %(levelname)s | %(name)s | "
         "%(filename)s:%(lineno)d | %(message)s"
     )
-    handlers.setFormatter(formatter)
 
-    logger.addHandler(handlers)
-    logger.addHandler(StreamHandler())
-    
+    stream_handler = StreamHandler()
+    stream_handler.setFormatter(formatter)
+    logger.addHandler(stream_handler)
+
+    if not IS_SERVERLESS:
+        logs_dir = "logs"
+        try:
+            os.makedirs(logs_dir, exist_ok=True)
+            log_path = os.path.join(logs_dir, "app.log")
+            file_handler = RotatingFileHandler(
+                log_path,
+                maxBytes=5 * 1024 * 1024,
+                backupCount=5,
+            )
+            file_handler.setFormatter(formatter)
+            logger.addHandler(file_handler)
+        except OSError:
+            pass
+
     return logger
-
