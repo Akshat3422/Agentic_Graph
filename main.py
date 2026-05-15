@@ -13,6 +13,7 @@ def _resolve_public_dir() -> str | None:
     # Try multiple common locations for the public directory in Vercel/Local environments
     candidates = [
         os.path.join(BASE_DIR, "public"),
+        os.path.join(BASE_DIR, "api", "public"),
         os.path.join(os.getcwd(), "public"),
         os.path.join(os.path.dirname(BASE_DIR), "public"),
         "/var/task/public",
