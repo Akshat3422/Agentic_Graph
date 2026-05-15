@@ -28,7 +28,9 @@ if database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql://", 1)
 
 is_remote = "localhost" not in database_url and "127.0.0.1" not in database_url
-connect_args = {"sslmode": "require"} if is_remote else {}
+connect_args = {"connect_timeout": 5}
+if is_remote:
+    connect_args["sslmode"] = "require"
 
 engine_kwargs = {"connect_args": connect_args, "pool_pre_ping": True}
 if is_remote:
