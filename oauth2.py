@@ -28,32 +28,34 @@ SECRET_KEY = _env("SECRET_KEY")
 ALGORITHM = _env("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = _env("ACCESS_TOKEN_EXPIRE_MINUTES")
 
-if not SECRET_KEY:
-    raise RuntimeError("SECRET_KEY is not set")
 
-if not ALGORITHM:
-    raise RuntimeError("ALGORITHM is not set")
-
-if not ACCESS_TOKEN_EXPIRE_MINUTES:
-    raise RuntimeError("ACCESS_TOKEN_EXPIRE_MINUTES is not set")
-
-SECRET_KEY = str(SECRET_KEY)
-ALGORITHM = str(ALGORITHM)
-ACCESS_TOKEN_EXPIRE_MINUTES = int(ACCESS_TOKEN_EXPIRE_MINUTES)
+def _auth_config_ready() -> bool:
+    return bool(SECRET_KEY and ALGORITHM and ACCESS_TOKEN_EXPIRE_MINUTES)
 
 
+def _require_auth_config() -> None:
+    if not SECRET_KEY:
+        raise RuntimeError("SECRET_KEY is not set")
+    if not ALGORITHM:
+        raise RuntimeError("ALGORITHM is not set")
+    if not ACCESS_TOKEN_EXPIRE_MINUTES:
+        raise RuntimeError("ACCESS_TOKEN_EXPIRE_MINUTES is not set")
 
-def create_access_token(data:dict):
-    to_encode=data.copy()
-    expire= datetime.utcnow()+timedelta(minutes=int(ACCESS_TOKEN_EXPIRE_MINUTES)) #type:ignore
+
+
+def create_access_token(data: dict):
+    _require_auth_config()
+    to_encode = data.copy()
+    expire = datetime.utcnow() + timedelta(minutes=int(ACCESS_TOKEN_EXPIRE_MINUTES))  # type: ignore
     to_encode.update({"exp":expire})
 
     encoded_jwt=jwt.encode(to_encode,SECRET_KEY,algorithm=ALGORITHM) #type: ignore
     return encoded_jwt
 
-def verify_access_token(token:str,credentials_exception):
+def verify_access_token(token: str, credentials_exception):
+    _require_auth_config()
     try:
-        payload= jwt.decode(token=token,key=SECRET_KEY,algorithms=[ALGORITHM]) #type: ignore
+        payload = jwt.decode(token=token, key=SECRET_KEY, algorithms=[ALGORITHM])  # type: ignore
         id:str=payload.get("user_id") #type: ignore
         if id is None:
             raise credentials_exception
