@@ -2,9 +2,12 @@ import os
 import traceback
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 import uuid
 from database import Base, engine
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+PUBLIC_DIR = os.path.join(BASE_DIR, "public")
 
 
 @asynccontextmanager
@@ -79,6 +82,27 @@ try:
         app.include_router(router=chatbot_router)
     except Exception as e:
         print("Chatbot router failed to load:", e)
+
+    if os.path.isdir(PUBLIC_DIR):
+
+        @app.get("/")
+        async def serve_index():
+            return FileResponse(os.path.join(PUBLIC_DIR, "index.html"))
+
+        @app.get("/app.js")
+        async def serve_app_js():
+            return FileResponse(
+                os.path.join(PUBLIC_DIR, "app.js"),
+                media_type="application/javascript",
+            )
+
+        @app.get("/styles.css")
+        async def serve_styles():
+            return FileResponse(
+                os.path.join(PUBLIC_DIR, "styles.css"),
+                media_type="text/css",
+            )
+
 except Exception as e:
     _startup_error = traceback.format_exc()
     print("API routers failed to load:", e)

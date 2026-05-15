@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional
 from enum import Enum
 from decimal import Decimal
@@ -10,9 +10,8 @@ class AccountType(Enum):
     CREDIT="credit" 
 
 class CreateAccountRequest(BaseModel):
-    account_name: str
-    account_type: AccountType  # Could be 'savings', 'checking', 'credit', etc.
-    balance: Optional[Decimal] = Decimal("0")
+    model_config = ConfigDict(from_attributes=True)
 
-    class Config:
-        orm_mode = True
+    account_name: str
+    account_type: AccountType
+    balance: Optional[Decimal] = Decimal("0")

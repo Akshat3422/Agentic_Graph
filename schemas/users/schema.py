@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr
 from typing import Optional
 
 
@@ -16,11 +16,11 @@ class UserCreate(BaseModel):
     is_active:bool=True
         # This is used to tell pydantic to convert the data types from ORM to pydantic
 class UserOut(BaseModel):
-    id:int
-    email:EmailStr
-    username:str
-    class Config:
-        orm_mode=True
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    email: EmailStr
+    username: str
 
 class UserLogin(BaseModel):
     email:EmailStr

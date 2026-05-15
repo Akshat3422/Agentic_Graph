@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional
 from enum import Enum
 from datetime import datetime,timezone
@@ -24,13 +24,13 @@ class ExpenditureCategory(Enum):
 
 
 class TransactionModel(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     transaction_type: TransactionType
     amount: Decimal
     description: str
     category: ExpenditureCategory
-    timestamp:Optional[datetime] = None
-    class Config:
-        orm_mode = True
+    timestamp: Optional[datetime] = None
 
 
 class TransactionOut(BaseModel):
