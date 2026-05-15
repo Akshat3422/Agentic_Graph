@@ -1,46 +1,26 @@
 import os
 import sys
-import traceback
-from fastapi import FastAPI
-from fastapi.responses import JSONResponse
 
-# Create a fallback app immediately so we can at least return 500s
+# Add root to path so we can import main.py and other modules
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if ROOT not in sys.path:
+    sys.path.insert(0, ROOT)
+
+# Basic health check to verify the entry point is reachable
+from fastapi import FastAPI
 app = FastAPI()
 
-# Add a basic health check that doesn't depend on the rest of the code
-@app.get("/api/health")
-def health():
-    return {"status": "api_index_is_alive"}
+@app.get("/api/ping")
+def ping():
+    return {"status": "pong", "root": ROOT}
 
+# Import the actual app
 try:
-    # Setup paths
-    ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    if ROOT not in sys.path:
-        sys.path.insert(0, ROOT)
-
-    # Try to import the main app
     from main import app as main_app
     app = main_app
-
-except Exception:
+except Exception as e:
+    import traceback
     _error = traceback.format_exc()
-    
-    @app.api_route("/{full_path:path}", methods=["GET", "POST", "PUT", "PATCH", "DELETE"])
-    async def catch_all(full_path: str = ""):
-        # Check for missing env vars as a likely cause
-        missing = [
-            key for key in (
-                "DATABASE_URL",
-                "SECRET_KEY",
-                "GROQ_API_KEY",
-            ) if not os.getenv(key)
-        ]
-        return JSONResponse(
-            status_code=500,
-            content={
-                "error": "Application failed to start during import",
-                "missing_env_vars": missing,
-                "detail": _error,
-                "hint": "Ensure all Environment Variables are set in Vercel Project Settings."
-            }
-        )
+    @app.get("/{full_path:path}")
+    async def error(full_path: str):
+        return {"error": "failed to import main", "detail": _error}
