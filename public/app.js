@@ -1,8 +1,15 @@
 ﻿const STORAGE_KEY = "financial-assistant-spa-state";
 const BACKEND_TRANSACTION_TYPES = ["income", "expense"];
 
+function getDefaultBaseUrl() {
+  if (typeof window !== "undefined" && window.location.hostname !== "localhost") {
+    return window.location.origin;
+  }
+  return "http://localhost:8000";
+}
+
 const state = {
-  baseUrl: "http://localhost:8000",
+  baseUrl: getDefaultBaseUrl(),
   token: null,
   user: null,
   userId: null,
