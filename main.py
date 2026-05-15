@@ -1,21 +1,28 @@
-import time
-from fastapi import FastAPI,Request
+from contextlib import asynccontextmanager
+from fastapi import FastAPI, Request
 import uuid
 from routes.user import user_router
 from routes.auth_routes import router
-from  routes.transactions_routes import transaction_router
-from  routes.accounts_routes import account_router
-from database import Base,engine,get_db
-from chatbot.graph import final_graph,router as new_router
+from routes.transactions_routes import transaction_router
+from routes.accounts_routes import account_router
+from database import Base, engine
 
-app=FastAPI()
 
-@app.on_event("startup")
-def startup():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     try:
         Base.metadata.create_all(bind=engine)
     except Exception as e:
         print("DB init failed:", e)
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
+
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}
 
 
 
@@ -46,5 +53,10 @@ app.include_router(user_router)
 app.include_router(router)
 app.include_router(account_router)
 app.include_router(transaction_router)
-app.include_router(router=new_router)
+
+try:
+    from chatbot.graph import router as chatbot_router
+    app.include_router(router=chatbot_router)
+except Exception as e:
+    print("Chatbot router failed to load:", e)
 

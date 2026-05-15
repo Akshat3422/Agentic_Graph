@@ -5,11 +5,19 @@ import os
 
 load_dotenv()
 
-post_gres_db_name = os.getenv("POSTGRES_DB_NAME")
-post_gres_user = os.getenv("POSTGRES_USER")
-post_gres_password = os.getenv("POSTGRES_PASSWORD")
 
-database_url = os.getenv("DATABASE_URL") or os.getenv("SUPABASE_DB_URL")
+def _env(name: str) -> str | None:
+    value = os.getenv(name)
+    if value is None:
+        return None
+    return value.strip().strip('"').strip("'")
+
+
+post_gres_db_name = _env("POSTGRES_DB_NAME")
+post_gres_user = _env("POSTGRES_USER")
+post_gres_password = _env("POSTGRES_PASSWORD")
+
+database_url = _env("DATABASE_URL") or _env("SUPABASE_DB_URL")
 if not database_url:
     database_url = (
         f"postgresql://{post_gres_user}:{post_gres_password}"

@@ -16,9 +16,17 @@ oauth2_scheme=OAuth2PasswordBearer(tokenUrl='login')
 #Expiration time
 load_dotenv()
 
-SECRET_KEY=os.getenv("SECRET_KEY")
-ALGORITHM=os.getenv("ALGORITHM")
-ACCESS_TOKEN_EXPIRE_MINUTES=os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")
+
+def _env(name: str) -> str | None:
+    value = os.getenv(name)
+    if value is None:
+        return None
+    return value.strip().strip('"').strip("'")
+
+
+SECRET_KEY = _env("SECRET_KEY")
+ALGORITHM = _env("ALGORITHM")
+ACCESS_TOKEN_EXPIRE_MINUTES = _env("ACCESS_TOKEN_EXPIRE_MINUTES")
 
 if not SECRET_KEY:
     raise RuntimeError("SECRET_KEY is not set")
