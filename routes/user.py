@@ -23,6 +23,24 @@ user_router=APIRouter(
 
 @user_router.post("/",status_code=status.HTTP_201_CREATED)
 def create_user(user:UserCreate, db:Session=Depends(get_db)):
+    # Check if username already exists
+    existing_username = db.query(User).filter(User.username == user.username).first()
+    if existing_username:
+        logger.warning(f"Registration failed: Username {user.username} already exists.")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Username already taken."
+        )
+
+    # Check if email already exists
+    existing_email = db.query(User).filter(User.email == user.email).first()
+    if existing_email:
+        logger.warning(f"Registration failed: Email {user.email} already exists.")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email already registered."
+        )
+
     # hash the password
     try:
         hashed_password=hash(user.password)
