@@ -1,6 +1,15 @@
 # Agentic Finance Manager
 
+[![Vercel Deployment](https://img.shields.io/badge/Vercel-Deployment-blue?logo=vercel&logoColor=white)](https://agentic-graph.vercel.app)
+
 Agentic Finance Manager is a FastAPI-based personal finance backend with JWT auth, account and transaction management, OTP email verification, and a LangGraph-powered finance chatbot. The repo also includes two client UIs for testing the API: a standalone browser frontend in `frontend/` and a Streamlit API lab.
+
+## 🚀 Live Deployment
+
+The application is deployed on Vercel and can be accessed at:
+👉 **[https://agentic-graph.vercel.app](https://agentic-graph.vercel.app)**
+
+*Note: Since the backend requires a PostgreSQL database and third-party APIs (like Groq and Gmail SMTP), ensure the required environment variables are set in your Vercel project configuration if hosting your own instance.*
 
 ## Overview
 
@@ -206,6 +215,11 @@ The Streamlit app provides:
 
 ## API Docs
 
+### Live (Vercel)
+- Swagger UI: [https://agentic-graph.vercel.app/docs](https://agentic-graph.vercel.app/docs)
+- ReDoc: [https://agentic-graph.vercel.app/redoc](https://agentic-graph.vercel.app/redoc)
+
+### Local Development
 - Swagger UI: `http://127.0.0.1:8000/docs`
 - ReDoc: `http://127.0.0.1:8000/redoc`
 
